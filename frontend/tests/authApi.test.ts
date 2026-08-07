@@ -1,0 +1,68 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { authApi } from "../src/features/auth/api/authApi";
+import { clearAccessToken } from "../src/lib/api/client";
+import type { AuthResponse } from "../src/features/auth/types/auth";
+
+
+const authResponse: AuthResponse = {
+  access_token: "access-token",
+  token_type: "bearer",
+  expires_in: 900,
+  user: {
+    id: "user-id",
+    name: "IntelliQR User",
+    email: "user@example.com",
+    role: "user",
+    status: "active",
+    created_at: "2026-08-07T00:00:00Z",
+    last_login_at: null,
+  },
+};
+
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  clearAccessToken();
+});
+
+
+describe("authApi", () => {
+  it("logs in with cookies enabled and keeps the access token in memory", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(authResponse), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(authResponse.user), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+    await authApi.login({ email: "user@example.com", password: "password123" });
+    await authApi.getCurrentUser();
+
+    expect(fetchMock.mock.calls[0]?.[1]?.credentials).toBe("include");
+    const profileHeaders = new Headers(fetchMock.mock.calls[1]?.[1]?.headers);
+    expect(profileHeaders.get("Authorization")).toBe("Bearer access-token");
+  });
+
+  it("clears local authentication state even when logout fails", async () => {
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(authResponse), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockRejectedValueOnce(new Error("offline"));
+
+    await authApi.login({ email: "user@example.com", password: "password123" });
+    await expect(authApi.logout()).rejects.toThrow("offline");
+  });
+});
