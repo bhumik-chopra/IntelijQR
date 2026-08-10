@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from "react";
 import {
   AtSign,
   ArrowLeft,
+  CheckCircle2,
   Contact,
   Download,
   FileText,
@@ -13,6 +14,7 @@ import {
   Phone,
   QrCode,
   RotateCcw,
+  Save,
   Sparkles,
   Upload,
   Wifi,
@@ -230,27 +232,16 @@ export const QrGeneratorPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-white sm:text-3xl">{t("generator.title")}</h1>
           <p className="mt-1 text-sm text-slate-500">{t("generator.description")}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            icon={<ArrowLeft className="h-4 w-4" />}
-            onClick={() => navigate("/dashboard")}
-          >
-            Back to Dashboard
-          </Button>
-          <Button
-            id="generator-save"
-            icon={<QrCode className="h-4 w-4" />}
-            loading={isGenerating}
-            disabled={!generationInput || Boolean(generation)}
-            onClick={() => void saveGeneration()}
-          >
-            {generation ? "Saved to Dashboard" : "Save QR Code"}
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          icon={<ArrowLeft className="h-4 w-4" />}
+          onClick={() => navigate("/dashboard")}
+        >
+          Back to Dashboard
+        </Button>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(380px,0.8fr)]">
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="space-y-6">
           <Card padding="none" className="overflow-visible">
             <div className="border-b border-white/6 p-5">
@@ -457,46 +448,81 @@ export const QrGeneratorPage: React.FC = () => {
           </Card>
         </div>
 
-        <aside className="xl:sticky xl:top-24 xl:self-start">
-          <Card padding="lg" glow className="overflow-visible">
-            <div className="mb-6 flex items-center justify-between">
+        <aside className="min-w-0 self-start">
+          <Card padding="none" glow className="overflow-hidden border-violet-500/20">
+            <div className="flex items-center justify-between border-b border-white/6 px-5 py-4">
               <div>
-                <h2 className="font-semibold text-white">{t("generator.live")}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-semibold text-white">{t("generator.live")}</h2>
+                  <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/8 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" /> Live
+                  </span>
+                </div>
                 <p className="text-xs text-slate-600">{t("generator.liveDesc")}</p>
               </div>
-              <Sparkles className="h-4 w-4 text-violet-400" />
+              <div className="rounded-xl border border-violet-500/20 bg-violet-500/10 p-2.5">
+                <Sparkles className="h-4 w-4 text-violet-300" />
+              </div>
             </div>
 
-            <div className="relative mx-auto flex aspect-square w-full max-w-[420px] items-center justify-center rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.14),transparent_60%)] p-6 sm:p-10">
-              <div className="absolute inset-4 rounded-[1.5rem] border border-white/4" />
-              {previewPayload ? (
-                <div className="relative rounded-3xl bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-7">
-                  <BrandedQrPreview
-                    value={previewPayload}
-                    design={design}
-                    logo={logo}
-                    className="h-auto w-full max-w-[320px]"
-                  />
-                </div>
-              ) : (
-                <div className="relative flex flex-col items-center text-center">
-                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/8 bg-white/4">
-                    <ImagePlus className="h-7 w-7 text-slate-600" />
+            <div className="p-4 sm:p-5">
+              <div className="relative flex min-h-[310px] w-full items-center justify-center overflow-hidden rounded-[1.75rem] border border-white/8 bg-[#090914] p-5 sm:min-h-[340px] sm:p-6">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_5%,rgba(124,58,237,0.22),transparent_48%)]" />
+                <div className="pointer-events-none absolute inset-3 rounded-[1.35rem] border border-white/[0.035]" />
+                <div className="pointer-events-none absolute -left-16 bottom-0 h-40 w-40 rounded-full bg-blue-500/5 blur-3xl" />
+                {previewPayload ? (
+                  <div className="relative aspect-square w-full max-w-[270px] overflow-hidden rounded-[1.5rem] bg-white p-4 shadow-[0_26px_90px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.08)]">
+                    <BrandedQrPreview
+                      value={previewPayload}
+                      design={design}
+                      logo={logo}
+                      className="block h-full w-full"
+                    />
                   </div>
-                  <p className="font-medium text-slate-300">Your preview will appear here</p>
-                  <p className="mt-1 max-w-xs text-xs text-slate-600">Enter the required content for the selected QR type.</p>
-                </div>
-              )}
-            </div>
+                ) : (
+                  <div className="relative flex max-w-xs flex-col items-center px-5 text-center">
+                    <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-3xl border border-violet-500/20 bg-violet-500/8 shadow-[0_0_45px_rgba(124,58,237,0.12)]">
+                      <ImagePlus className="h-8 w-8 text-violet-300/60" />
+                    </div>
+                    <p className="font-semibold text-slate-200">Your QR preview will appear here</p>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-600">Enter the required {activeType} content. Design changes will update this preview instantly.</p>
+                  </div>
+                )}
+              </div>
 
-            <div className="mt-6">
+              <div className="mt-4" aria-live="polite">
+                <Button
+                  id="generator-save"
+                  variant={generation ? "secondary" : "primary"}
+                  size="lg"
+                  fullWidth
+                  icon={generation ? <CheckCircle2 className="h-5 w-5 text-emerald-400" /> : <Save className="h-5 w-5" />}
+                  iconRight={!generation && !isGenerating ? <Sparkles className="h-4 w-4" /> : undefined}
+                  loading={isGenerating}
+                  disabled={!generationInput || Boolean(generation)}
+                  onClick={() => void saveGeneration()}
+                  className={cn(
+                    "h-14 rounded-2xl text-base",
+                    generation && "border-emerald-500/25 bg-emerald-500/8 text-emerald-300",
+                  )}
+                >
+                  {generation ? "QR saved to Dashboard" : "Save QR to Dashboard"}
+                </Button>
+                {!generationInput && (
+                  <p className="mt-2 text-center text-[11px] text-slate-600">
+                    Complete the required content to enable saving.
+                  </p>
+                )}
+              </div>
+
               {error && (
-                <p role="alert" className="mb-3 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-400">
+                <p role="alert" className="mt-3 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-400">
                   {error.message}
                 </p>
               )}
+
               {generation && (
-                <div className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/8 p-3">
+                <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/8 p-3">
                   <div className="flex items-center justify-between gap-2">
                     <Badge variant="success">{t("generator.saved")}</Badge>
                     <span className="text-xs capitalize text-slate-500">{generation.status}</span>
@@ -506,21 +532,27 @@ export const QrGeneratorPage: React.FC = () => {
                   )}
                 </div>
               )}
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">{t("generator.download")}</p>
-              <div className="grid grid-cols-3 gap-2">
-                {(["png", "svg", "pdf"] as DownloadFormat[]).map((format) => (
-                  <Button
-                    key={format}
-                    variant={format === "png" ? "primary" : "outline"}
-                    size="sm"
-                    icon={<Download className="h-3.5 w-3.5" />}
-                    loading={downloadFormat === format}
-                    disabled={!generation}
-                    onClick={() => void download(format)}
-                  >
-                    {format.toUpperCase()}
-                  </Button>
-                ))}
+
+              <div className="mt-5 border-t border-white/6 pt-4">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">{t("generator.download")}</p>
+                  <span className="text-[11px] text-slate-700">PNG, SVG or PDF</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["png", "svg", "pdf"] as DownloadFormat[]).map((format) => (
+                    <Button
+                      key={format}
+                      variant={generation && format === "png" ? "primary" : "outline"}
+                      size="sm"
+                      icon={<Download className="h-3.5 w-3.5" />}
+                      loading={downloadFormat === format}
+                      disabled={!generation}
+                      onClick={() => void download(format)}
+                    >
+                      {format.toUpperCase()}
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
           </Card>

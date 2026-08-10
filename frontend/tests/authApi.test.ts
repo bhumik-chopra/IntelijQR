@@ -48,6 +48,7 @@ describe("authApi", () => {
     await authApi.login({ email: "user@example.com", password: "password123" });
     await authApi.getCurrentUser();
 
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("/api/v1/auth/login");
     expect(fetchMock.mock.calls[0]?.[1]?.credentials).toBe("include");
     const profileHeaders = new Headers(fetchMock.mock.calls[1]?.[1]?.headers);
     expect(profileHeaders.get("Authorization")).toBe("Bearer access-token");
@@ -65,6 +66,16 @@ describe("authApi", () => {
 
     await authApi.login({ email: "user@example.com", password: "password123" });
     await expect(authApi.logout()).rejects.toThrow("offline");
+  });
+
+  it("shows an actionable message when the backend cannot be reached", async () => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(new TypeError("Failed to fetch"));
+
+    await expect(
+      authApi.login({ email: "user@example.com", password: "password123" }),
+    ).rejects.toThrow(
+      "Cannot reach the IntelliQR backend. Make sure the backend server is running.",
+    );
   });
 
   it("updates profile fields and submits a password rotation", async () => {

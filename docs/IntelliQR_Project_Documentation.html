@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>IntelliQR Project Documentation</title>
+  <style>
+    @page { size: A4; margin: 16mm 15mm 17mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #172033; font: 10.2pt/1.48 "Segoe UI", Arial, sans-serif; }
+    h1, h2, h3 { color: #24145f; margin: 0 0 8px; line-height: 1.18; }
+    h1 { font-size: 27pt; } h2 { font-size: 19pt; border-bottom: 2px solid #ddd6fe; padding-bottom: 6px; }
+    h3 { font-size: 12.5pt; margin-top: 14px; }
+    p { margin: 5px 0 9px; }
+    ul, ol { margin: 5px 0 10px; padding-left: 19px; } li { margin: 3px 0; }
+    code { font-family: Consolas, monospace; font-size: 8.6pt; }
+    pre { background: #101326; color: #e8e9ff; border-radius: 7px; padding: 10px 12px; white-space: pre-wrap; line-height: 1.38; margin: 7px 0 12px; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0 13px; font-size: 9pt; }
+    th { background: #ede9fe; color: #302066; text-align: left; }
+    th, td { border: 1px solid #d9dce7; padding: 6px 7px; vertical-align: top; }
+    tr:nth-child(even) td { background: #fafaff; }
+    .page { break-before: page; }
+    .avoid { break-inside: avoid; }
+    .cover { height: 260mm; display: flex; flex-direction: column; justify-content: center; padding: 10mm; background: linear-gradient(145deg,#f5f3ff 0%,#fff 48%,#eff6ff 100%); }
+    .mark { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg,#7c3aed,#2563eb); color: white; display: grid; place-items: center; font-size: 30px; font-weight: 800; margin-bottom: 24px; }
+    .subtitle { font-size: 15pt; color: #536079; max-width: 580px; }
+    .meta { margin-top: 36px; padding-top: 16px; border-top: 1px solid #c7d2fe; color: #56617a; }
+    .tag { display: inline-block; margin: 4px 4px 0 0; padding: 4px 8px; border-radius: 999px; background: #ede9fe; color: #5b21b6; font-size: 8.5pt; font-weight: 600; }
+    .callout { border-left: 4px solid #7c3aed; background: #f5f3ff; padding: 9px 12px; margin: 9px 0 13px; }
+    .flow { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin: 12px 0; }
+    .flow div { background: #f7f7ff; border: 1px solid #cbc5f5; border-radius: 7px; padding: 8px; text-align: center; font-size: 8.7pt; }
+    .arrow { color: #7c3aed; font-weight: 700; }
+    .tree { columns: 2; column-gap: 18px; background: #f8fafc; color: #172033; border: 1px solid #d9dce7; }
+    .small { font-size: 8.7pt; color: #5d6679; }
+    .toc td:first-child { width: 34px; text-align: center; font-weight: 700; color: #6d28d9; }
+    .ok { color: #047857; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <div class="mark">IQ</div>
+    <h1>IntelliQR</h1>
+    <p class="subtitle">Complete Project Documentation: working, architecture, file structure, technology stack, setup, and start commands</p>
+    <div>
+      <span class="tag">React 19</span><span class="tag">TypeScript</span><span class="tag">FastAPI</span>
+      <span class="tag">MongoDB</span><span class="tag">Local-first</span><span class="tag">QR Platform</span>
+    </div>
+    <div class="meta">
+      <strong>Repository:</strong> IntelijQR<br>
+      <strong>Document version:</strong> 1.0 &nbsp; | &nbsp; <strong>Prepared:</strong> 10 August 2026<br>
+      <strong>Scope:</strong> frontend, backend API, persistence, local file storage, security, and tests
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>Contents</h2>
+    <table class="toc">
+      <tr><td>1</td><td>Project overview and goals</td></tr>
+      <tr><td>2</td><td>How the project works end to end</td></tr>
+      <tr><td>3</td><td>Feature-by-feature working</td></tr>
+      <tr><td>4</td><td>System architecture and data flow</td></tr>
+      <tr><td>5</td><td>Frontend structure and responsibilities</td></tr>
+      <tr><td>6</td><td>Backend structure and responsibilities</td></tr>
+      <tr><td>7</td><td>Technology stack</td></tr>
+      <tr><td>8</td><td>Security, persistence, and privacy</td></tr>
+      <tr><td>9</td><td>Setup and start commands</td></tr>
+      <tr><td>10</td><td>API and route reference</td></tr>
+      <tr><td>11</td><td>Testing, build, and troubleshooting</td></tr>
+    </table>
+
+    <h2>1. Project overview</h2>
+    <p><strong>IntelliQR</strong> is a local-first, full-stack QR management platform. It creates styled QR codes, decodes uploaded or webcam QR images, manages dynamic destinations, records privacy-conscious analytics, generates QR codes in bulk, and provides encrypted access-controlled sharing for links and files.</p>
+    <p>The application is designed as a portfolio-grade multi-user system rather than a single-page QR utility. It includes authentication, owner-isolated records, role-based administration, notifications, profile settings, English/Hindi/Gujarati interface support, and automated backend and frontend tests.</p>
+
+    <div class="callout"><strong>Core idea:</strong> the React application presents the user interface, the FastAPI service enforces business rules and security, MongoDB stores records and events, and local directories store generated images, ZIP archives, and encrypted shared files.</div>
+
+    <h3>Main user groups</h3>
+    <ul>
+      <li><strong>Public visitors:</strong> view the landing page, register/login, follow dynamic QR redirects, and complete protected link/file access checks.</li>
+      <li><strong>Members:</strong> generate, scan, manage, export, analyze, bulk-create, and securely share QR-based content.</li>
+      <li><strong>Administrators:</strong> view platform statistics, search users, change roles/status, and inspect audit activity.</li>
+    </ul>
+  </section>
+
+  <section class="page">
+    <h2>2. How the project works end to end</h2>
+    <h3>Normal authenticated request</h3>
+    <div class="flow">
+      <div>1. User acts in a React page</div><div>2. Feature API calls <code>/api/v1</code></div><div>3. FastAPI dependency validates JWT</div><div>4. Service applies business rules</div>
+      <div>8. UI updates from typed JSON</div><div>7. API returns schema response</div><div>6. Repository/storage saves result</div><div>5. Renderer/decoder/cipher runs if needed</div>
+    </div>
+    <p>The frontend uses one API client. It sends cookies on every request, adds the in-memory access token, converts error envelopes to <code>ApiError</code>, and performs a single refresh-and-retry when a protected request returns HTTP 401.</p>
+
+    <h3>Authentication lifecycle</h3>
+    <ol>
+      <li>Registration or login verifies credentials and returns a short-lived JWT access token.</li>
+      <li>The access token is kept only in JavaScript memory. The refresh token is held in an HttpOnly backend cookie.</li>
+      <li>On page restoration or an expired access token, <code>POST /auth/refresh</code> rotates the refresh session and supplies a new access token.</li>
+      <li>Logout, password rotation, account disablement, or security-sensitive role changes invalidate sessions. A token-version check protects every authenticated request.</li>
+    </ol>
+
+    <h3>Dynamic QR lifecycle</h3>
+    <ol>
+      <li>A URL QR generation request builds a stable backend URL such as <code>/r/{slug}</code>, rather than permanently embedding the final destination.</li>
+      <li>The renderer creates PNG, SVG, and PDF files from the persisted BrandCraft design.</li>
+      <li>When scanned, the redirect endpoint checks status, expiry, scan limit, and access policy.</li>
+      <li>A permitted scan atomically increments usage, records a privacy-safe analytics event, and redirects to the current destination.</li>
+      <li>Because the QR contains a stable slug, the owner can change or pause the destination without printing a new code.</li>
+    </ol>
+  </section>
+
+  <section class="page">
+    <h2>3. Feature-by-feature working</h2>
+    <table>
+      <tr><th>Feature</th><th>Working</th></tr>
+      <tr><td><strong>QR Generator + BrandCraft</strong></td><td>Creates URL, text, email, phone, Wi-Fi, contact, and location payloads. Users control colors/gradients, modules, frame, correction level, size, margin, and validated logos. Generated items support CRUD, search, filters, favourites, pause/activate, limits, expiry, and PNG/SVG/PDF download.</td></tr>
+      <tr><td><strong>SafeScan</strong></td><td>Accepts PNG/JPEG/WebP uploads or webcam frames up to 10 MB. OpenCV/pyzbar decode one or more values. SmartClassifier identifies structured content and SafeScan applies local URL risk heuristics. The source image is not retained.</td></tr>
+      <tr><td><strong>Analytics</strong></td><td>Uses successful dynamic redirect events to calculate totals, unique-visitor estimates, trends, device/browser/OS/location breakdowns, top QR codes, and recent scans. Period and QR filters are supported.</td></tr>
+      <tr><td><strong>SecureVault</strong></td><td>Protects dynamic destinations with public, password, signed-in-member, or private email-allowlist policies. Destinations are encrypted at rest. Successful access produces a short-lived, slug-bound JWT grant before redirect.</td></tr>
+      <tr><td><strong>BulkForge</strong></td><td>Parses CSV/XLSX files (up to 250 rows), validates each row through the normal generator, tracks queued/processing/completed/partial/failed state, preserves bounded row errors, and packages successful PNG/SVG/PDF outputs in an owner-only ZIP.</td></tr>
+      <tr><td><strong>ShareVault</strong></td><td>Signature-checks approved files up to 25 MB, encrypts them with AES-256-GCM, generates a recipient QR, and enforces policy, expiry, pause, and atomic download limits. Files are decrypted in memory only after a short-lived access grant.</td></tr>
+      <tr><td><strong>Dashboard</strong></td><td>Aggregates owner-scoped QR, favourite, scan, share, bulk, and export statistics plus recent activity and download history.</td></tr>
+      <tr><td><strong>Notifications</strong></td><td>Stores security, scan-limit, ShareVault, and BulkForge events; exposes unread counts and read/delete/preferences controls. Optional email is deliberately restricted to a localhost SMTP capture server.</td></tr>
+      <tr><td><strong>Profile + i18n</strong></td><td>Updates display name, password, theme, and locale. Shared dictionaries provide English, Hindi, and Gujarati UI content, and locale survives session restoration.</td></tr>
+      <tr><td><strong>Administration</strong></td><td>Role-gated views expose platform counts, paginated user management, role/status controls, and privacy-safe audit history. Rules prevent self-lockout and removal of the last active administrator.</td></tr>
+    </table>
+  </section>
+
+  <section class="page">
+    <h2>4. System architecture</h2>
+    <table>
+      <tr><th>Layer</th><th>Components</th><th>Responsibility</th></tr>
+      <tr><td>Presentation</td><td>React pages, layouts, UI components</td><td>Navigation, forms, visualization, public/protected pages, accessibility feedback.</td></tr>
+      <tr><td>Frontend domain</td><td><code>features/*</code> APIs, hooks, types, contexts</td><td>Typed feature boundaries, stateful workflows, auth/session and locale state.</td></tr>
+      <tr><td>HTTP API</td><td>FastAPI routers, endpoints, Pydantic schemas</td><td>Versioned contract, validation, dependency injection, status codes, responses.</td></tr>
+      <tr><td>Application services</td><td>Auth, generator, scanner, vault, analytics, bulk, share, admin</td><td>Business rules and orchestration independent of HTTP presentation.</td></tr>
+      <tr><td>Persistence</td><td>MongoDB repositories</td><td>Owner-scoped documents, sessions, jobs, notifications, events, atomic counters.</td></tr>
+      <tr><td>Infrastructure</td><td>QR renderer/decoder, parsers, ZIP/file storage, cipher, local SMTP</td><td>External-format processing and local resource access.</td></tr>
+    </table>
+
+    <h3>Runtime topology</h3>
+    <pre>Browser at http://127.0.0.1:5173
+  |  JSON / multipart / cookie + Bearer JWT
+  v
+FastAPI at http://127.0.0.1:8000
+  |-- /api/v1/*  versioned application API
+  |-- /r/{slug}  dynamic QR redirect
+  |-- /docs       Swagger UI
+  |
+  +--> MongoDB at mongodb://localhost:27017 (database: intelliqr)
+  +--> ../data/generated  rendered QR files
+  +--> ../data/bulk       ZIP job archives
+  +--> ../data/shares     encrypted shared-file blobs
+  +--> localhost:1025     optional SMTP capture server</pre>
+
+    <h3>Backend request safeguards</h3>
+    <p>Middleware assigns or preserves <code>X-Request-ID</code>, measures request time, logs completion, and adds API-version and content-type headers. Consistent JSON error envelopes are returned for application, validation, and unexpected errors. CORS allows the local Vite origins and credentials.</p>
+  </section>
+
+  <section class="page">
+    <h2>5. Frontend file structure</h2>
+    <pre class="tree">frontend/
+  package.json              scripts and dependencies
+  vite.config.ts            React + Tailwind plugins
+  tsconfig.json             TypeScript configuration
+  index.html                Vite HTML entry
+  src/
+    main.tsx                mounts providers and App
+    App.tsx                 router and lazy page routes
+    index.css               Tailwind/global visual system
+    components/
+      ProtectedRoute.tsx    auth/role route guard
+      layout/               navbar, sidebar, page shells
+      ui/                   button, input, card, badge, etc.
+    pages/                  route-level screens
+      LandingPage.tsx       public introduction
+      LoginPage.tsx         sign in
+      RegisterPage.tsx      create account
+      DashboardPage.tsx     personal summary
+      QrGeneratorPage.tsx   create/manage QR codes
+      QrScannerPage.tsx     SafeScan workflow
+      AnalyticsPage.tsx     charts and breakdowns
+      BulkForgePage.tsx     batch jobs
+      ShareVaultPage.tsx    owner file sharing
+      VaultAccessPage.tsx   public link authorization
+      SharedFileAccessPage.tsx public file access
+      ProfilePage.tsx       account/settings
+      NotificationsPage.tsx local inbox
+      AdminPage.tsx         admin control center
+    features/
+      auth/                 API, context, hook, types
+      qr-generator/         API, hooks, controls, preview
+      qr-scanner/           API, hook, types
+      analytics/            API, hook, chart components
+      bulk-forge/           API, hook, types
+      secure-vault/         public access API/types
+      share-vault/          owner/recipient APIs and hooks
+      personal-dashboard/   summary API/hook/types
+      notifications/        inbox API/hook/types
+      admin/                admin API/hook/types
+      i18n/                 locale context/dictionaries
+    lib/api/client.ts       shared fetch + refresh logic
+    hooks/useTheme.ts       local theme preference
+  tests/                    Vitest feature API tests
+  dist/                     production build output</pre>
+    <p class="small">Pages are lazy-loaded from <code>App.tsx</code>. Public routes are separate from the authenticated <code>DashboardLayout</code>; the admin route adds a second role guard.</p>
+  </section>
+
+  <section class="page">
+    <h2>6. Backend file structure</h2>
+    <pre class="tree">backend/
+  requirements.txt         Python dependencies
+  .env.example             safe configuration template
+  README.md / API.md       local and REST notes
+  app/
+    main.py                app, middleware, errors, routers
+    core/
+      config.py            environment settings
+      security.py          passwords and JWTs
+      vault.py             AES cipher and grants
+      exceptions.py        application error types
+      logging.py           structured request logging
+    db/mongodb.py          connection and indexes
+    api/
+      dependencies.py      repositories/services/auth DI
+      v1/router.py         versioned router composition
+      v1/endpoints/        HTTP endpoint modules
+    schemas/               Pydantic request/response models
+    models/                internal domain records
+    repositories/          MongoDB persistence operations
+    services/
+      auth_service.py      auth/session rules
+      profile_service.py   account updates
+      dashboard_service.py aggregation
+      notification_service.py alerts/preferences
+      admin_service.py     admin invariants/auditing
+      qr/
+        generator_service.py generation lifecycle
+        scanner_service.py decode analysis/history
+        payload_builder.py content serialization
+        classifier.py      content classification
+        safe_scan.py       local URL heuristics
+        vault_access_service.py protected links
+      bulk/bulk_service.py batch orchestration
+      share/share_service.py encrypted sharing
+      analytics/           aggregation + scan context
+    infrastructure/
+      qr/                   renderer and decoder
+      bulk/                 CSV/XLSX parser, ZIP storage
+      storage/              QR and encrypted file storage
+      notifications/       localhost SMTP sender
+  scripts/                  integration smoke tests
+  tests/                    Pytest unit/API tests</pre>
+    <p>The dependency module constructs repositories and services for each request. This keeps endpoints thin: they validate HTTP input and delegate the actual rule enforcement to services.</p>
+  </section>
+
+  <section class="page">
+    <h2>7. Technology stack</h2>
+    <table>
+      <tr><th>Area</th><th>Technology</th><th>Purpose</th></tr>
+      <tr><td>UI framework</td><td>React 19.1, React DOM</td><td>Component-based browser application.</td></tr>
+      <tr><td>Language/build</td><td>TypeScript 5.9, Vite 7</td><td>Static types, development server, optimized production bundles.</td></tr>
+      <tr><td>Navigation</td><td>React Router DOM 7</td><td>Public, authenticated, lazy, and role-protected routes.</td></tr>
+      <tr><td>Styling/UI</td><td>Tailwind CSS 4, Radix UI, Lucide React, clsx, tailwind-merge</td><td>Responsive styling, accessible primitives, icons, class composition.</td></tr>
+      <tr><td>Browser QR</td><td><code>qrcode</code></td><td>Matching live QR preview while editing designs.</td></tr>
+      <tr><td>API framework</td><td>Python 3, FastAPI, Uvicorn</td><td>Async REST endpoints, dependency injection, OpenAPI server.</td></tr>
+      <tr><td>Validation/config</td><td>Pydantic 2, pydantic-settings</td><td>Typed schemas and environment-driven settings.</td></tr>
+      <tr><td>Database</td><td>MongoDB, PyMongo</td><td>Users, sessions, QR records, scan events, jobs, shares, notifications.</td></tr>
+      <tr><td>Security</td><td>PyJWT, pwdlib/bcrypt, cryptography</td><td>Access/refresh/grant JWTs, password hashing, AES-256-GCM encryption.</td></tr>
+      <tr><td>Image/QR</td><td>qrcode, Pillow, OpenCV, pyzbar</td><td>Render QR assets, validate images, and decode uploaded/webcam images.</td></tr>
+      <tr><td>Batch/files</td><td>openpyxl, Python CSV/ZIP/file APIs</td><td>CSV/XLSX imports and downloadable job archives.</td></tr>
+      <tr><td>Testing</td><td>Pytest, HTTPX/TestClient, Vitest</td><td>Backend behavior/contracts and frontend feature API tests.</td></tr>
+    </table>
+
+    <h3>Design choices</h3>
+    <ul>
+      <li><strong>Local-first:</strong> no cloud database, file store, translation provider, geolocation API, or external SMTP is required.</li>
+      <li><strong>Feature-oriented frontend:</strong> each domain owns its API wrapper, types, and hooks.</li>
+      <li><strong>Layered backend:</strong> endpoint, service, repository, and infrastructure responsibilities remain distinct.</li>
+      <li><strong>Stable dynamic links:</strong> analytics and destination updates work without regenerating printed QR codes.</li>
+    </ul>
+  </section>
+
+  <section class="page">
+    <h2>8. Security, persistence, and privacy</h2>
+    <table>
+      <tr><th>Concern</th><th>Implementation</th></tr>
+      <tr><td>Passwords</td><td>Bcrypt-backed password service; plaintext passwords are never stored.</td></tr>
+      <tr><td>Browser tokens</td><td>Access token remains in memory; rotating refresh token uses an HttpOnly cookie.</td></tr>
+      <tr><td>Authorization</td><td>Every owner resource is scoped to the authenticated user; admin endpoints require a current database role.</td></tr>
+      <tr><td>Revocation</td><td>Refresh sessions plus token-version validation support logout, password rotation, role changes, and disabled accounts.</td></tr>
+      <tr><td>Protected data</td><td>SecureVault destinations and ShareVault files use AES-256-GCM with unique nonces. Shared passwords use hashes.</td></tr>
+      <tr><td>Temporary grants</td><td>Purpose-bound, short-lived JWTs bind access to one QR or file slug.</td></tr>
+      <tr><td>Scan privacy</td><td>Uploaded images are decoded without retention. Analytics store a keyed one-way visitor hash, not raw IP or full user-agent strings.</td></tr>
+      <tr><td>Redirect privacy</td><td>Protected redirects disable caching and referrer propagation to avoid leaking grant information.</td></tr>
+      <tr><td>Email safety</td><td>Only localhost SMTP hosts are accepted; notification failure never blocks the main operation.</td></tr>
+    </table>
+
+    <h3>Persisted data</h3>
+    <p>MongoDB collections represented by the repository/model layer include users, refresh sessions, QR generations, scanner history, dynamic scan events, bulk jobs, shared files, share download events, notifications, and audit/dashboard-related events. Local generated artifacts live under the root <code>data/</code> directory, which is ignored by Git.</p>
+
+    <div class="callout"><strong>Production caution:</strong> replace both example secrets, use a dedicated vault encryption key, retain that key safely, set secure cookies behind HTTPS, restrict CORS, and configure <code>MONGODB_REQUIRED_ON_STARTUP=true</code>. Losing or changing the vault key makes existing protected data unreadable.</div>
+  </section>
+
+  <section class="page">
+    <h2>9. Setup and start commands</h2>
+    <h3>Prerequisites</h3>
+    <ul>
+      <li>Python 3.11+ and Node.js/npm</li>
+      <li>A local MongoDB server reachable at <code>mongodb://localhost:27017</code></li>
+      <li>Windows PowerShell (commands below); Git is recommended</li>
+    </ul>
+
+    <h3>One-time backend setup</h3>
+    <pre>cd C:\codes\react\IntelijQR\backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+Copy-Item .env.example .env</pre>
+    <p>Edit <code>backend/.env</code> and replace <code>INTELLIQR_JWT_SECRET</code> and <code>INTELLIQR_VAULT_ENCRYPTION_KEY</code> with separate random values of at least 32 characters. Do not commit <code>.env</code>.</p>
+
+    <h3>One-time frontend setup</h3>
+    <pre>cd C:\codes\react\IntelijQR\frontend
+npm install
+Copy-Item .env.example .env</pre>
+
+    <h3>Start the application (three terminals)</h3>
+    <table>
+      <tr><th>Terminal</th><th>Command</th></tr>
+      <tr><td>1 — MongoDB</td><td>Start the local MongoDB Windows service, or run your installed <code>mongod</code> instance.</td></tr>
+      <tr><td>2 — Backend</td><td><pre>cd C:\codes\react\IntelijQR\backend
+.\.venv\Scripts\Activate.ps1
+uvicorn app.main:app --reload</pre></td></tr>
+      <tr><td>3 — Frontend</td><td><pre>cd C:\codes\react\IntelijQR\frontend
+npm run dev</pre></td></tr>
+    </table>
+    <p>Open <code>http://127.0.0.1:5173</code>. Swagger API documentation is at <code>http://127.0.0.1:8000/docs</code>; readiness is at <code>http://127.0.0.1:8000/api/v1/health/ready</code>.</p>
+
+    <h3>Optional administrator</h3>
+    <pre>INTELLIQR_ADMIN_EMAILS=["admin@example.com"]</pre>
+    <p>Add the setting to <code>backend/.env</code>, restart the API, then register or log in with that email.</p>
+  </section>
+
+  <section class="page">
+    <h2>10. Route and API reference</h2>
+    <h3>Frontend routes</h3>
+    <table>
+      <tr><th>Access</th><th>Routes</th></tr>
+      <tr><td>Public</td><td><code>/</code>, <code>/login</code>, <code>/register</code>, <code>/access/:slug</code>, <code>/share/:slug</code></td></tr>
+      <tr><td>Authenticated</td><td><code>/dashboard</code>, <code>/generator</code>, <code>/scanner</code>, <code>/analytics</code>, <code>/bulk</code>, <code>/share-vault</code>, <code>/profile</code>, <code>/notifications</code></td></tr>
+      <tr><td>Admin</td><td><code>/admin</code></td></tr>
+      <tr><td>Compatibility</td><td><code>/qr-codes</code> redirects to <code>/generator</code></td></tr>
+    </table>
+
+    <h3>Backend resource groups under <code>/api/v1</code></h3>
+    <table>
+      <tr><th>Prefix</th><th>Main operations</th></tr>
+      <tr><td><code>/auth</code></td><td>Register, login, rotate refresh token, logout.</td></tr>
+      <tr><td><code>/users</code></td><td>Current profile, display name, locale, password.</td></tr>
+      <tr><td><code>/qr/generations</code></td><td>Create/list/read/update/delete and download PNG/SVG/PDF.</td></tr>
+      <tr><td><code>/qr/scans</code></td><td>Decode images, analyze content, list/delete history.</td></tr>
+      <tr><td><code>/qr/access</code></td><td>Read protected-link policy and unlock.</td></tr>
+      <tr><td><code>/analytics</code></td><td>Filtered analytics overview.</td></tr>
+      <tr><td><code>/bulk</code></td><td>Create/list/read/delete jobs and download ZIP output.</td></tr>
+      <tr><td><code>/shares</code></td><td>Owner CRUD/history plus public policy, grant, and download.</td></tr>
+      <tr><td><code>/dashboard</code></td><td>Cross-feature personal summary.</td></tr>
+      <tr><td><code>/notifications</code></td><td>Inbox, unread state, deletion, and preferences.</td></tr>
+      <tr><td><code>/admin</code></td><td>Overview, paginated users, access changes, audit data.</td></tr>
+      <tr><td><code>/health</code>, <code>/meta</code></td><td>Liveness/readiness and runtime capabilities/limits.</td></tr>
+    </table>
+    <p>Dynamic redirects are exposed separately at <code>/r/{slug}</code>. Complete request/response schemas are always available from <code>/openapi.json</code>, <code>/docs</code>, and <code>/redoc</code>.</p>
+  </section>
+
+  <section class="page">
+    <h2>11. Testing, build, and troubleshooting</h2>
+    <h3>Validation commands</h3>
+    <pre># Backend
+cd C:\codes\react\IntelijQR\backend
+.\.venv\Scripts\Activate.ps1
+python -m pytest
+
+# Frontend
+cd C:\codes\react\IntelijQR\frontend
+npm test
+npm run typecheck
+npm run build
+
+# Preview the production frontend build
+npm run preview</pre>
+
+    <h3>Verified repository status on 10 August 2026</h3>
+    <ul>
+      <li><span class="ok">55 backend tests passed</span> with one third-party Starlette/httpx deprecation warning.</li>
+      <li><span class="ok">24 frontend tests passed</span> across 11 Vitest files.</li>
+      <li><span class="ok">TypeScript compilation and Vite production build passed</span> (1,848 modules transformed).</li>
+    </ul>
+
+    <h3>Common problems</h3>
+    <table>
+      <tr><th>Symptom</th><th>Resolution</th></tr>
+      <tr><td>Backend settings validation fails</td><td>Create <code>backend/.env</code> from the example and provide secrets of at least 32 characters.</td></tr>
+      <tr><td>Readiness returns 503 / operations fail</td><td>Start MongoDB and verify URI/database settings. Enable required-on-startup when failure should stop the API.</td></tr>
+      <tr><td>Browser cannot call API</td><td>Confirm both servers are running, <code>VITE_API_BASE_URL</code> is correct, and the frontend origin is listed in backend CORS settings.</td></tr>
+      <tr><td>Phone-scanned QR cannot redirect</td><td>Set redirect/frontend base URLs to the computer's LAN IP; <code>127.0.0.1</code> on a phone refers to the phone itself.</td></tr>
+      <tr><td>Protected data cannot decrypt</td><td>Restore the exact original vault encryption key. Do not casually rotate this key.</td></tr>
+      <tr><td>PowerShell blocks activation</td><td>Use <code>.\.venv\Scripts\python.exe</code> directly, or change execution policy only according to local security rules.</td></tr>
+      <tr><td>Email is not delivered</td><td>Run a local SMTP capture service on port 1025, enable user preferences, and keep the host as localhost.</td></tr>
+    </table>
+
+    <div class="callout"><strong>Summary:</strong> IntelliQR combines a typed React client with a layered FastAPI/MongoDB backend. Its strongest architectural themes are stable dynamic QR links, explicit feature boundaries, local-first processing, owner isolation, encrypted access workflows, and automated contract validation.</div>
+  </section>
+</body>
+</html>

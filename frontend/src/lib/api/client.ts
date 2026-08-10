@@ -4,7 +4,10 @@ import type {
 } from "../../features/auth/types/auth";
 
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL as string | undefined;
-const API_BASE_URL = (configuredBaseUrl ?? "http://127.0.0.1:8000/api/v1").replace(
+// In local development, Vite proxies this relative path to FastAPI. Keeping the
+// browser request same-origin ensures the HttpOnly refresh cookie works whether
+// the site was opened with localhost or 127.0.0.1.
+const API_BASE_URL = (configuredBaseUrl ?? "/api/v1").replace(
   /\/$/,
   "",
 );
@@ -72,8 +75,12 @@ async function rawRequest<T>(
       credentials: "include",
     });
   } catch (error) {
+    const originalMessage = error instanceof Error ? error.message : "";
+    const message = /failed to fetch|networkerror|load failed/i.test(originalMessage)
+      ? "Cannot reach the IntelliQR backend. Make sure the backend server is running."
+      : originalMessage || "Network request failed";
     throw new ApiError(
-      error instanceof Error ? error.message : "Network request failed",
+      message,
       0,
       "network_error",
     );

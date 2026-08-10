@@ -16,8 +16,12 @@ class DashboardRepository:
             self._db.qr_scans.count_documents({"user_id": user_id}), self._db.share_files.count_documents({"user_id": user_id}),
             self._db.bulk_jobs.count_documents({"user_id": user_id}), self._db.download_events.count_documents({"user_id": user_id}),
         )
-        qr_totals = await self._db.qr_generations.aggregate([{"$match": {"user_id": user_id}}, {"$group": {"_id": None, "scans": {"$sum": {"$ifNull": ["$scan_count", 0]}}}}]).to_list(length=1)
-        share_totals = await self._db.share_files.aggregate([{"$match": {"user_id": user_id}}, {"$group": {"_id": None, "downloads": {"$sum": {"$ifNull": ["$download_count", 0]}}}}]).to_list(length=1)
+        qr_totals_cursor = await self._db.qr_generations.aggregate([{"$match": {"user_id": user_id}}, {"$group": {"_id": None, "scans": {"$sum": {"$ifNull": ["$scan_count", 0]}}}}])
+        share_totals_cursor = await self._db.share_files.aggregate([{"$match": {"user_id": user_id}}, {"$group": {"_id": None, "downloads": {"$sum": {"$ifNull": ["$download_count", 0]}}}}])
+        qr_totals, share_totals = await asyncio.gather(
+            qr_totals_cursor.to_list(length=1),
+            share_totals_cursor.to_list(length=1),
+        )
         recent_downloads = await self._db.download_events.find({"user_id": user_id}).sort("downloaded_at", -1).limit(20).to_list(length=20)
         activity_sources = await asyncio.gather(
             self._db.qr_generations.find({"user_id": user_id}, {"label": 1, "payload_preview": 1, "payload_type": 1, "created_at": 1}).sort("created_at", -1).limit(5).to_list(length=5),

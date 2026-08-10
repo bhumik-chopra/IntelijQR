@@ -86,5 +86,6 @@ class AnalyticsRepository:
                 ],
             }},
         ]
-        results = await self._events.aggregate(pipeline).to_list(length=1)
+        cursor = await self._events.aggregate(pipeline)
+        results = await cursor.to_list(length=1)
         return results[0] if results else {}
