@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
 from app.api.v1.router import api_router
+from app.api.v1.endpoints.qr_redirects import router as qr_redirect_router
 from app.core.config import get_settings
 from app.core.exceptions import ApplicationError, AuthenticationError
 from app.core.logging import configure_logging
@@ -30,7 +31,25 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title=settings.app_name,
-    version="0.1.0",
+    version=settings.api_version,
+    description=(
+        "Local-first REST API for authenticated QR generation, decoding, dynamic links, "
+        "analytics, encrypted file sharing, and batch generation. Use the Bearer token "
+        "returned by the JSON login endpoint to authorize protected operations."
+    ),
+    contact={"name": "IntelliQR local administrator"},
+    license_info={"name": "Private portfolio project"},
+    openapi_tags=[
+        {"name": "API discovery", "description": "Version, capabilities, documentation, and limits."},
+        {"name": "authentication", "description": "JWT registration, login, refresh rotation, and logout."},
+        {"name": "QR generation", "description": "Owner-isolated QR CRUD and file downloads."},
+        {"name": "QR scanning", "description": "Image decoding, classification, local safety analysis, and history."},
+        {"name": "analytics", "description": "Owner-scoped scan analytics."},
+        {"name": "BulkForge", "description": "CSV/XLSX batch generation and ZIP exports."},
+        {"name": "ShareVault", "description": "Encrypted local file upload and controlled access."},
+        {"name": "administration", "description": "Role-protected platform health, user access, and audit history."},
+        {"name": "notifications", "description": "Local event alerts, unread state, and localhost SMTP preferences."},
+    ],
     debug=settings.debug,
     lifespan=lifespan,
 )
@@ -50,6 +69,8 @@ async def request_context(request: Request, call_next):
     started = time.perf_counter()
     response = await call_next(request)
     response.headers["X-Request-ID"] = request_id
+    response.headers["X-API-Version"] = settings.api_version
+    response.headers["X-Content-Type-Options"] = "nosniff"
     logger.info(
         "Request completed",
         extra={
@@ -127,6 +148,7 @@ async def unexpected_error_handler(request: Request, exc: Exception) -> JSONResp
 
 
 app.include_router(api_router, prefix=settings.api_v1_prefix)
+app.include_router(qr_redirect_router, prefix="/r", tags=["Dynamic QR redirect"])
 
 
 @app.get("/", include_in_schema=False)

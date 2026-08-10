@@ -39,6 +39,19 @@ export const authApi = {
     return apiClient.get<AuthUser>("/users/me");
   },
 
+  updateProfile(name: string): Promise<AuthUser> {
+    return apiClient.patch<AuthUser>("/users/me", { name });
+  },
+
+  updateLocale(locale: AuthUser["locale"]): Promise<AuthUser> {
+    return apiClient.patch<AuthUser>("/users/me/locale", { locale });
+  },
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    await apiClient.post<{ message: string }>("/users/me/password", { current_password: currentPassword, new_password: newPassword });
+    clearAccessToken();
+  },
+
   async logout(): Promise<void> {
     try {
       await apiClient.post<{ message: string }>("/auth/logout", undefined, {
@@ -50,4 +63,3 @@ export const authApi = {
     }
   },
 };
-

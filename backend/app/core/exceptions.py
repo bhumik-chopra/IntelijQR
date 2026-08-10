@@ -26,3 +26,7 @@ class NotFoundError(ApplicationError):
     status_code = 404
     code = "resource_not_found"
 
+
+class GoneError(ApplicationError):
+    status_code = 410
+    code = "resource_unavailable"

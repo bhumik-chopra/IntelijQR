@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.schemas.user import UserResponse
@@ -7,6 +9,7 @@ class RegisterRequest(BaseModel):
     name: str = Field(min_length=2, max_length=80)
     email: EmailStr
     password: str = Field(min_length=8, max_length=72)
+    locale: Literal["en", "hi", "gu"] = "en"
 
     @field_validator("name")
     @classmethod

@@ -83,6 +83,12 @@ class SessionRepository:
             {"$set": {"revoked_at": datetime.now(timezone.utc)}},
         )
 
+    async def revoke_user(self, user_id: str) -> None:
+        await self._collection.update_many(
+            {"user_id": user_id, "revoked_at": None},
+            {"$set": {"revoked_at": datetime.now(timezone.utc)}},
+        )
+
     @staticmethod
     def _to_domain(document: dict) -> Session:
         return Session(

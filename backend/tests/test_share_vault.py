@@ -1,0 +1,58 @@
+import asyncio
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+
+from app.core.config import Settings
+from app.core.exceptions import ApplicationError, AuthorizationError
+from app.core.security import PasswordService, TokenValidationError
+from app.core.vault import VaultCipher, VaultGrantService
+from app.infrastructure.storage.encrypted_share_storage import EncryptedShareStorage
+from app.models.share_file import ShareFile
+from app.services.analytics.scan_context import ScanContextService
+from app.services.share.share_service import ShareVaultService
+
+
+def test_encrypted_share_storage_never_writes_plaintext(tmp_path: Path) -> None:
+    storage = EncryptedShareStorage(tmp_path, VaultCipher("share-secret-that-is-at-least-32-characters"))
+    relative = storage.save("file-key", b"confidential document content")
+
+    assert b"confidential" not in (tmp_path / relative).read_bytes()
+    assert storage.read(relative) == b"confidential document content"
+
+
+def test_share_grants_cannot_be_used_as_qr_grants() -> None:
+    settings = Settings(_env_file=None, jwt_secret="x" * 32)
+    grants = VaultGrantService(settings)
+    token, _ = grants.create("share-slug", "visitor", purpose="share")
+
+    assert grants.validate(token, "share-slug", purpose="share")["purpose"] == "share"
+    with pytest.raises(TokenValidationError):
+        grants.validate(token, "share-slug", purpose="qr")
+
+
+def test_share_status_reflects_expiry_and_download_limits() -> None:
+    now = datetime.now(timezone.utc)
+    base = dict(id="id", user_id="user", slug="slug", filename="file.pdf", media_type="application/pdf", size=10,
+                content_hash="hash", stored_path="file.vault", qr_generation_id="qr", access_mode="public",
+                access_password_hash=None, allowed_emails=[], is_active=True, created_at=now, updated_at=now)
+    assert ShareFile(**base, expires_at=now - timedelta(seconds=1), max_downloads=None, download_count=0).status == "expired"
+    assert ShareFile(**base, expires_at=None, max_downloads=2, download_count=2).status == "download_limit_reached"
+
+
+def test_share_service_rejects_disguised_files_and_enforces_password() -> None:
+    settings = Settings(_env_file=None, jwt_secret="x" * 32)
+    passwords = PasswordService()
+    share = SimpleNamespace(status="active", access_mode="password", access_password_hash=passwords.hash("correct-password"), allowed_emails=[])
+
+    class Repository:
+        async def find_by_slug(self, _slug): return share
+
+    service = ShareVaultService(Repository(), None, None, None, passwords, VaultGrantService(settings), ScanContextService("x" * 32),
+                                "http://127.0.0.1:5173", "http://127.0.0.1:8000", 1024 * 1024)
+    with pytest.raises(ApplicationError): service._validate_file("malware.pdf", "application/pdf", b"MZ executable")
+    with pytest.raises(AuthorizationError): asyncio.run(service.grant("slug", "wrong-password", None))
+    url, _ = asyncio.run(service.grant("slug", "correct-password", None))
+    assert "/shares/access/slug/download?grant=" in url

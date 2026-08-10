@@ -13,6 +13,7 @@ import type {
   LoginInput,
   RegisterInput,
 } from "../types/auth";
+import { useLocale } from "../../i18n/hooks/useLocale";
 
 export interface AuthContextValue {
   user: AuthUser | null;
@@ -27,6 +28,7 @@ export interface AuthContextValue {
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: PropsWithChildren) {
+  const { locale, setLocale } = useLocale();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
 
@@ -35,7 +37,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     authApi
       .restoreSession()
       .then((result) => {
-        if (active) setUser(result.user);
+        if (active) { setUser(result.user); setLocale(result.user.locale); }
       })
       .catch(() => {
         if (active) setUser(null);
@@ -49,14 +51,20 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const register = useCallback(async (input: RegisterInput) => {
-    const result = await authApi.register(input);
-    setUser(result.user);
-  }, []);
+    await authApi.register({ ...input, locale });
+    try {
+      await authApi.logout();
+    } catch {
+      // Registration succeeded; the API client still clears its in-memory token.
+    }
+    setUser(null);
+  }, [locale]);
 
   const login = useCallback(async (input: LoginInput) => {
     const result = await authApi.login(input);
     setUser(result.user);
-  }, []);
+    setLocale(result.user.locale);
+  }, [setLocale]);
 
   const logout = useCallback(async () => {
     try {
@@ -85,4 +93,3 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-

@@ -1,0 +1,20 @@
+import React, { useEffect, useState } from "react";
+import { CheckCircle2, Download, Eye, EyeOff, FileLock2, LockKeyhole, LogIn, ShieldCheck } from "lucide-react";
+import { Link, useParams } from "react-router-dom";
+
+import { Badge, Button, Card, Input, Spinner } from "../components/ui";
+import { useAuth } from "../features/auth";
+import { shareVaultApi, type SharePolicy } from "../features/share-vault";
+
+
+const sizeLabel = (bytes: number) => bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${(bytes / 1024).toFixed(1)} KB`;
+export const SharedFileAccessPage: React.FC = () => {
+  const { slug = "" } = useParams(); const { isAuthenticated, isInitializing, user } = useAuth();
+  const [policy, setPolicy] = useState<SharePolicy | null>(null); const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null); const [downloaded, setDownloaded] = useState(false);
+  useEffect(() => { shareVaultApi.policy(slug).then(setPolicy).catch((caught) => setError(caught instanceof Error ? caught.message : "Shared file was not found")); }, [slug]);
+  const download = async () => { setLoading(true); setError(null); try { const grant = await shareVaultApi.grant(slug, password); await shareVaultApi.downloadGranted(grant.download_url, policy?.filename ?? "shared-file"); setDownloaded(true); } catch (caught) { setError(caught instanceof Error ? caught.message : "File access failed"); } finally { setLoading(false); } };
+
+  return <main className="flex min-h-screen items-center justify-center bg-[#08080F] px-5 py-10"><div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.18),transparent_50%)]" /><Card glow padding="lg" className="relative w-full max-w-md">{!policy && !error ? <div className="flex min-h-72 items-center justify-center"><Spinner size="lg" /></div> : <><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-blue-500"><FileLock2 className="h-7 w-7 text-white" /></div><div className="mt-5 text-center"><Badge variant="purple"><ShieldCheck className="h-3.5 w-3.5" /> ShareVault</Badge><h1 className="mt-4 break-all text-2xl font-bold text-white">{policy?.filename ?? "Protected file"}</h1>{policy && <p className="mt-2 text-sm text-slate-500">{sizeLabel(policy.size)} · <span className="capitalize">{policy.access_mode}</span> access</p>}</div>{error && <p role="alert" className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">{error}</p>}{downloaded && <p className="mt-5 flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-400"><CheckCircle2 className="h-4 w-4" />Download authorized. Your file should begin downloading.</p>}{policy?.access_mode === "password" && <div className="mt-6"><Input label="File password" type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} icon={<LockKeyhole className="h-4 w-4" />} iconRight={showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} onIconRightClick={() => setShowPassword((value) => !value)} /></div>}{policy?.requires_authentication && !isInitializing && !isAuthenticated ? <Link to="/login" state={{ from: { pathname: `/share/${slug}` } }} className="mt-6 block"><Button fullWidth icon={<LogIn className="h-4 w-4" />}>Sign in to download</Button></Link> : policy && <Button fullWidth className="mt-6" loading={loading} disabled={policy.status !== "active" || (policy.access_mode === "password" && password.length < 8)} icon={<Download className="h-4 w-4" />} onClick={() => void download()}>{policy.access_mode === "private" ? `Download as ${user?.email ?? "member"}` : "Authorize download"}</Button>}<p className="mt-5 text-center text-xs text-slate-700">The encrypted file is decrypted in memory only after access is approved.</p></>}</Card></main>;
+};

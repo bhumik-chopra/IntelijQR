@@ -15,6 +15,7 @@ class UserResponse(BaseModel):
     status: str
     created_at: datetime
     last_login_at: datetime | None
+    locale: str = "en"
 
     @classmethod
     def from_domain(cls, user: User) -> "UserResponse":

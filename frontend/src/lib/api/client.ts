@@ -4,7 +4,7 @@ import type {
 } from "../../features/auth/types/auth";
 
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL as string | undefined;
-const API_BASE_URL = (configuredBaseUrl ?? "http://localhost:8000/api/v1").replace(
+const API_BASE_URL = (configuredBaseUrl ?? "http://127.0.0.1:8000/api/v1").replace(
   /\/$/,
   "",
 );
@@ -28,6 +28,7 @@ export class ApiError extends Error {
 interface RequestOptions {
   authenticate?: boolean;
   retryAfterRefresh?: boolean;
+  responseType?: "json" | "blob";
 }
 
 export function setAccessToken(token: string | null): void {
@@ -38,13 +39,13 @@ export function clearAccessToken(): void {
   accessToken = null;
 }
 
-async function parseResponse<T>(response: Response): Promise<T> {
+async function parseResponse<T>(response: Response, responseType: "json" | "blob" = "json"): Promise<T> {
   if (response.status === 204) {
     return undefined as T;
   }
 
-  const data = (await response.json().catch(() => ({}))) as T & ApiErrorPayload;
   if (!response.ok) {
+    const data = (await response.json().catch(() => ({}))) as ApiErrorPayload;
     throw new ApiError(
       data.error?.message ?? data.detail ?? "Request failed",
       response.status,
@@ -53,10 +54,17 @@ async function parseResponse<T>(response: Response): Promise<T> {
       data.error?.request_id,
     );
   }
-  return data;
+  if (responseType === "blob") {
+    return (await response.blob()) as T;
+  }
+  return (await response.json()) as T;
 }
 
-async function rawRequest<T>(path: string, init: RequestInit): Promise<T> {
+async function rawRequest<T>(
+  path: string,
+  init: RequestInit,
+  responseType: "json" | "blob" = "json",
+): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
@@ -70,7 +78,7 @@ async function rawRequest<T>(path: string, init: RequestInit): Promise<T> {
       "network_error",
     );
   }
-  return parseResponse<T>(response);
+  return parseResponse<T>(response, responseType);
 }
 
 export async function restoreSession(): Promise<AuthResponse> {
@@ -106,7 +114,7 @@ async function request<T>(
   }
 
   try {
-    return await rawRequest<T>(path, { ...init, headers });
+    return await rawRequest<T>(path, { ...init, headers }, options.responseType);
   } catch (error) {
     const shouldRefresh =
       error instanceof ApiError &&
@@ -122,7 +130,7 @@ async function request<T>(
     if (accessToken) {
       retryHeaders.set("Authorization", `Bearer ${accessToken}`);
     }
-    return rawRequest<T>(path, { ...init, headers: retryHeaders });
+    return rawRequest<T>(path, { ...init, headers: retryHeaders }, options.responseType);
   }
 }
 
@@ -138,4 +146,16 @@ export const apiClient = {
       },
       options,
     ),
+  postForm: <T>(path: string, body: FormData, options?: RequestOptions) =>
+    request<T>(path, { method: "POST", body }, options),
+  patch: <T>(path: string, body: unknown, options?: RequestOptions) =>
+    request<T>(
+      path,
+      { method: "PATCH", body: JSON.stringify(body) },
+      options,
+    ),
+  delete: <T>(path: string, options?: RequestOptions) =>
+    request<T>(path, { method: "DELETE" }, options),
+  download: (path: string) =>
+    request<Blob>(path, { method: "GET" }, { responseType: "blob" }),
 };

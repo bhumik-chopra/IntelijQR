@@ -11,18 +11,19 @@ class UserRepository:
     def __init__(self, database: AsyncDatabase) -> None:
         self._collection = database.users
 
-    async def create(self, name: str, email: str, password_hash: str) -> User:
+    async def create(self, name: str, email: str, password_hash: str, role: str = "user", locale: str = "en") -> User:
         now = datetime.now(timezone.utc)
         document = {
             "name": name,
             "email": email,
             "password_hash": password_hash,
-            "role": "user",
+            "role": role,
             "status": "active",
             "token_version": 1,
             "created_at": now,
             "updated_at": now,
             "last_login_at": None,
+            "locale": locale,
         }
         try:
             result = await self._collection.insert_one(document)
@@ -54,6 +55,46 @@ class UserRepository:
             {"_id": ObjectId(user_id)}, {"$set": {"last_login_at": now, "updated_at": now}}
         )
 
+    async def update_name(self, user_id: str, name: str) -> User | None:
+        from bson import ObjectId
+        from pymongo import ReturnDocument
+        document = await self._collection.find_one_and_update(
+            {"_id": ObjectId(user_id), "status": "active"},
+            {"$set": {"name": name, "updated_at": datetime.now(timezone.utc)}},
+            return_document=ReturnDocument.AFTER,
+        )
+        return self._to_domain(document) if document else None
+
+    async def change_password(self, user_id: str, password_hash: str) -> User | None:
+        from bson import ObjectId
+        from pymongo import ReturnDocument
+        document = await self._collection.find_one_and_update(
+            {"_id": ObjectId(user_id), "status": "active"},
+            {"$set": {"password_hash": password_hash, "updated_at": datetime.now(timezone.utc)}, "$inc": {"token_version": 1}},
+            return_document=ReturnDocument.AFTER,
+        )
+        return self._to_domain(document) if document else None
+
+    async def set_role(self, user_id: str, role: str) -> User | None:
+        from bson import ObjectId
+        from pymongo import ReturnDocument
+        document = await self._collection.find_one_and_update(
+            {"_id": ObjectId(user_id)},
+            {"$set": {"role": role, "updated_at": datetime.now(timezone.utc)}, "$inc": {"token_version": 1}},
+            return_document=ReturnDocument.AFTER,
+        )
+        return self._to_domain(document) if document else None
+
+    async def update_locale(self, user_id: str, locale: str) -> User | None:
+        from bson import ObjectId
+        from pymongo import ReturnDocument
+        document = await self._collection.find_one_and_update(
+            {"_id": ObjectId(user_id), "status": "active"},
+            {"$set": {"locale": locale, "updated_at": datetime.now(timezone.utc)}},
+            return_document=ReturnDocument.AFTER,
+        )
+        return self._to_domain(document) if document else None
+
     @staticmethod
     def _to_domain(document: dict) -> User:
         return User(
@@ -61,10 +102,11 @@ class UserRepository:
             name=document.get("name", document.get("username", "IntelliQR User")),
             email=document["email"],
             password_hash=document["password_hash"],
-            role=document["role"],
-            status=document["status"],
-            token_version=document["token_version"],
+            role=document.get("role", "user"),
+            status=document.get("status", "active"),
+            token_version=document.get("token_version", 1),
             created_at=document["created_at"],
             updated_at=document["updated_at"],
             last_login_at=document.get("last_login_at"),
+            locale=document.get("locale", "en"),
         )

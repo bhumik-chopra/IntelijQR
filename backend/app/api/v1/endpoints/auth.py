@@ -41,7 +41,7 @@ async def register(
     service: Annotated[AuthService, Depends(get_auth_service)],
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> TokenResponse:
-    result = await service.register(payload.name, str(payload.email), payload.password)
+    result = await service.register(payload.name, str(payload.email), payload.password, payload.locale)
     _set_refresh_cookie(response, result, settings)
     return _token_response(result)
 

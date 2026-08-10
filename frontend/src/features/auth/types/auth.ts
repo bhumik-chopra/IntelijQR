@@ -6,12 +6,14 @@ export interface AuthUser {
   status: "active" | "disabled";
   created_at: string;
   last_login_at: string | null;
+  locale: "en" | "hi" | "gu";
 }
 
 export interface RegisterInput {
   name: string;
   email: string;
   password: string;
+  locale?: "en" | "hi" | "gu";
 }
 
 export interface LoginInput {
@@ -35,4 +37,3 @@ export interface ApiErrorPayload {
   };
   detail?: string;
 }
-

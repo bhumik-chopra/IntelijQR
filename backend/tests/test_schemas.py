@@ -22,3 +22,9 @@ def test_registration_rejects_oversized_bcrypt_password() -> None:
             email="user@example.com",
             password="é" * 40,
         )
+
+
+def test_registration_accepts_supported_locale_and_rejects_unknown_locale() -> None:
+    assert RegisterRequest(name="User Name", email="user@example.com", password="password123", locale="hi").locale == "hi"
+    with pytest.raises(ValidationError):
+        RegisterRequest(name="User Name", email="user@example.com", password="password123", locale="fr")

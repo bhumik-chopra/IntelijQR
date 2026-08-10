@@ -15,3 +15,4 @@ class User:
     created_at: datetime
     updated_at: datetime
     last_login_at: datetime | None = None
+    locale: Literal["en", "hi", "gu"] = "en"

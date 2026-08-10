@@ -29,7 +29,7 @@ class TokenPayload:
 class PasswordService:
     def __init__(self) -> None:
         self._hasher = PasswordHash((BcryptHasher(rounds=12),))
-        self.dummy_hash = self._hasher.hash("intelliqr-dummy-password")
+        self.nonexistent_user_hash = self._hasher.hash("intelliqr-constant-time-password-check")
 
     def hash(self, password: str) -> str:
         return self._hasher.hash(password)

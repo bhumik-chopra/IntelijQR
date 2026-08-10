@@ -14,3 +14,9 @@ class ErrorBody(BaseModel):
 class ErrorResponse(BaseModel):
     error: ErrorBody
 
+
+class PaginationFields(BaseModel):
+    total: int
+    limit: int
+    offset: int
+    has_more: bool

@@ -16,7 +16,8 @@ const authResponse: AuthResponse = {
     role: "user",
     status: "active",
     created_at: "2026-08-07T00:00:00Z",
-    last_login_at: null,
+  last_login_at: null,
+  locale: "en",
   },
 };
 
@@ -64,5 +65,26 @@ describe("authApi", () => {
 
     await authApi.login({ email: "user@example.com", password: "password123" });
     await expect(authApi.logout()).rejects.toThrow("offline");
+  });
+
+  it("updates profile fields and submits a password rotation", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response(JSON.stringify(authResponse), { status: 200, headers: { "Content-Type": "application/json" } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ ...authResponse.user, name: "Updated User" }), { status: 200, headers: { "Content-Type": "application/json" } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ message: "Password changed" }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    await authApi.login({ email: "user@example.com", password: "password123" });
+    expect((await authApi.updateProfile("Updated User")).name).toBe("Updated User");
+    await authApi.changePassword("password123", "new-password123");
+    expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toEqual({ name: "Updated User" });
+    expect(JSON.parse(String(fetchMock.mock.calls[2]?.[1]?.body))).toEqual({ current_password: "password123", new_password: "new-password123" });
+  });
+
+  it("persists the selected account locale", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response(JSON.stringify(authResponse), { status: 200, headers: { "Content-Type": "application/json" } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ ...authResponse.user, locale: "gu" }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    await authApi.login({ email: "user@example.com", password: "password123" });
+    expect((await authApi.updateLocale("gu")).locale).toBe("gu");
+    expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toEqual({ locale: "gu" });
   });
 });

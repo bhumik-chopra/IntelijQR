@@ -1,0 +1,283 @@
+@import "tailwindcss";
+
+/* ============================================================
+   INTELLIQR DESIGN SYSTEM
+   ============================================================ */
+
+@layer base {
+  :root {
+    /* Colors */
+    --color-bg-deep:     #08080F;
+    --color-bg-base:     #0A0A14;
+    --color-bg-surface:  #0F0F1F;
+    --color-bg-elevated: #141428;
+    --color-bg-card:     #171730;
+    --color-bg-hover:    #1C1C38;
+
+    /* Accent */
+    --color-purple:      #7C3AED;
+    --color-purple-light:#9D5CF8;
+    --color-blue:        #3B82F6;
+    --color-blue-light:  #60A5FA;
+    --color-accent-glow: rgba(124, 58, 237, 0.3);
+
+    /* Text */
+    --color-text-primary: #F1F5F9;
+    --color-text-muted:   #94A3B8;
+    --color-text-subtle:  #475569;
+    --color-text-faint:   #334155;
+
+    /* Borders */
+    --color-border:       rgba(255, 255, 255, 0.07);
+    --color-border-hover: rgba(255, 255, 255, 0.12);
+    --color-border-focus: rgba(124, 58, 237, 0.6);
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, #7C3AED 0%, #3B82F6 100%);
+    --gradient-subtle:  linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(59,130,246,0.15) 100%);
+    --gradient-glow:    linear-gradient(135deg, rgba(124,58,237,0.4) 0%, rgba(59,130,246,0.4) 100%);
+    --gradient-bg:      linear-gradient(135deg, #08080F 0%, #0A0A20 50%, #080816 100%);
+
+    /* Shadows */
+    --shadow-sm:      0 1px 3px rgba(0,0,0,0.4);
+    --shadow-md:      0 4px 16px rgba(0,0,0,0.5);
+    --shadow-lg:      0 8px 40px rgba(0,0,0,0.6);
+    --shadow-glow:    0 0 40px rgba(124,58,237,0.2);
+    --shadow-glow-lg: 0 0 80px rgba(124,58,237,0.25);
+    --shadow-card:    0 2px 24px rgba(0,0,0,0.4), 0 0 1px rgba(255,255,255,0.06);
+
+    /* Glass */
+    --glass-bg:     rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur:   blur(16px);
+
+    /* Radius */
+    --radius-sm:  6px;
+    --radius-md:  10px;
+    --radius-lg:  16px;
+    --radius-xl:  24px;
+    --radius-2xl: 32px;
+
+    /* Transitions */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--color-bg-base);
+    color: var(--color-text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg-surface);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(124, 58, 237, 0.35);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(124, 58, 237, 0.6);
+  }
+
+  ::selection {
+    background: rgba(124, 58, 237, 0.35);
+    color: #fff;
+  }
+}
+
+/* The app starts dark, while the navbar toggle applies this persisted light theme. */
+html[data-theme="light"] body,
+html[data-theme="light"] .bg-\[\#08080F\],
+html[data-theme="light"] .bg-\[\#0A0A14\],
+html[data-theme="light"] .bg-\[\#0F0F1F\],
+html[data-theme="light"] [class*="bg-[#08080F]"],
+html[data-theme="light"] [class*="bg-[#0A0A14]"] {
+  background-color: #f8fafc !important;
+}
+
+html[data-theme="light"] .bg-\[\#141428\],
+html[data-theme="light"] [class*="bg-white/"] {
+  background-color: #ffffff !important;
+}
+
+html[data-theme="light"] [class*="border-white/"] {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+html[data-theme="light"] .text-white,
+html[data-theme="light"] .text-slate-200,
+html[data-theme="light"] .text-slate-300 {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .text-slate-400,
+html[data-theme="light"] .text-slate-500,
+html[data-theme="light"] .text-slate-600,
+html[data-theme="light"] .text-slate-700 {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .bg-gradient-to-r.text-white,
+html[data-theme="light"] .bg-gradient-to-br .text-white,
+html[data-theme="light"] .bg-gradient-to-br.text-white {
+  color: #ffffff !important;
+}
+
+/* ============================================================
+   GLOBAL ANIMATION KEYFRAMES
+   ============================================================ */
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in-scale {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(124,58,237,0.2); }
+  50%       { box-shadow: 0 0 40px rgba(124,58,237,0.5); }
+}
+
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(80px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(80px) rotate(-360deg); }
+}
+
+@keyframes counter-orbit {
+  from { transform: rotate(0deg) translateX(120px) rotate(0deg); }
+  to   { transform: rotate(-360deg) translateX(120px) rotate(360deg); }
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+.animate-fade-in        { animation: fade-in 0.5s ease forwards; }
+.animate-fade-in-scale  { animation: fade-in-scale 0.4s ease forwards; }
+.animate-slide-in-left  { animation: slide-in-left 0.4s ease forwards; }
+.animate-float          { animation: float 6s ease-in-out infinite; }
+.animate-pulse-glow     { animation: pulse-glow 3s ease-in-out infinite; }
+.animate-gradient       { animation: gradient-shift 6s ease infinite; background-size: 200% 200%; }
+.animate-shimmer        {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* Glass card */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+}
+
+/* Gradient text */
+.text-gradient {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gradient border trick */
+.gradient-border {
+  position: relative;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--gradient-primary);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Noise texture overlay */
+.noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Spotlight */
+.spotlight {
+  position: absolute;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle at center, rgba(124,58,237,0.15) 0%, transparent 65%);
+  pointer-events: none;
+}

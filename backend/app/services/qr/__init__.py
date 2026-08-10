@@ -1,0 +1,2 @@
+"""QR generator application services."""
+

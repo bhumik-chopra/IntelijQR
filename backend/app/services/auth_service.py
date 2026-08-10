@@ -36,25 +36,29 @@ class AuthService:
         self._tokens = tokens
         self._settings = settings
 
-    async def register(self, name: str, email: str, password: str) -> AuthenticationResult:
+    async def register(self, name: str, email: str, password: str, locale: str = "en") -> AuthenticationResult:
         normalized_email = email.strip().lower()
         if await self._users.find_by_email(normalized_email):
             raise ConflictError("An account with this email already exists")
-        user = await self._users.create(
-            name.strip(), normalized_email, self._passwords.hash(password)
-        )
+        role = "admin" if normalized_email in self._admin_emails else "user"
+        user = await self._users.create(name.strip(), normalized_email, self._passwords.hash(password), role, locale)
         logger.info("User registered", extra={"user_id": user.id})
         return await self._issue_session(user)
 
     async def login(self, email: str, password: str) -> AuthenticationResult:
         user = await self._users.find_by_email(email.strip().lower())
         if user is None:
-            self._passwords.verify(password, self._passwords.dummy_hash)
+            self._passwords.verify(password, self._passwords.nonexistent_user_hash)
             raise AuthenticationError("Incorrect email or password")
         if not self._passwords.verify(password, user.password_hash):
             raise AuthenticationError("Incorrect email or password")
         if user.status != "active":
             raise AuthenticationError("Account is not active")
+        if user.email.lower() in self._admin_emails and user.role != "admin":
+            promoted = await self._users.set_role(user.id, "admin")
+            if promoted is not None:
+                user = promoted
+                logger.info("Configured administrator promoted", extra={"user_id": user.id})
         await self._users.record_login(user.id)
         logger.info("User authenticated", extra={"user_id": user.id})
         return await self._issue_session(user)
@@ -119,3 +123,7 @@ class AuthService:
             refresh_token=refresh_token,
             access_expires_in=self._settings.access_token_expire_minutes * 60,
         )
+
+    @property
+    def _admin_emails(self) -> set[str]:
+        return {email.strip().lower() for email in self._settings.admin_emails if email.strip()}
