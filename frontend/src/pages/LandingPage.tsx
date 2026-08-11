@@ -16,6 +16,7 @@ import { Badge, Button, Spinner } from "../components/ui";
 import { useAuth } from "../features/auth";
 import { LanguageSelector, useLocale } from "../features/i18n";
 import { cn } from "../lib/cn";
+import { BackendStatus } from "../components/BackendStatus";
 
 
 const features = [
@@ -74,6 +75,7 @@ export const LandingPage: React.FC = () => {
         </a>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          <BackendStatus compact />
           <LanguageSelector compact />
           {isInitializing ? (
             <Spinner size="sm" />

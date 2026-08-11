@@ -27,7 +27,7 @@ interface BaseQrInput {
   allowed_emails?: string[];
 }
 
-export interface UrlQrInput extends BaseQrInput { type: "url"; url: string; }
+export interface UrlQrInput extends BaseQrInput { type: "url"; url: string; dynamic?: boolean; }
 export interface TextQrInput extends BaseQrInput { type: "text"; text: string; }
 export interface EmailQrInput extends BaseQrInput { type: "email"; email: string; subject?: string; body?: string; }
 export interface PhoneQrInput extends BaseQrInput { type: "phone"; phone: string; }

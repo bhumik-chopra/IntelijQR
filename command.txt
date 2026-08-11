@@ -8,10 +8,13 @@ Make sure your local MongoDB server is running first.
 TERMINAL 1 - START BACKEND
 --------------------------------------------------
 cd C:\codes\react\IntelijQR\backend
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 Backend URL:
 http://127.0.0.1:8000
+
+Backend URL for phones on the same Wi-Fi:
+http://192.168.1.14:8000
 
 Swagger API documentation:
 http://127.0.0.1:8000/docs
@@ -20,10 +23,13 @@ http://127.0.0.1:8000/docs
 TERMINAL 2 - START FRONTEND
 --------------------------------------------------
 cd C:\codes\react\IntelijQR\frontend
-npm run dev
+npm run dev -- --host 0.0.0.0
 
 Frontend URL:
 http://127.0.0.1:5173
+
+Frontend URL for phones on the same Wi-Fi:
+http://192.168.1.14:5173
 
 
 STOP A SERVER

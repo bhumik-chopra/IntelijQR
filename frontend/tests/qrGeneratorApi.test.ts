@@ -67,12 +67,13 @@ describe("qrGeneratorApi", () => {
       type: "url",
       label: "Website",
       url: "https://example.com",
+      dynamic: false,
     });
 
     expect(result.id).toBe("generation-id");
     const request = fetchMock.mock.calls[0]?.[1];
     expect(new Headers(request?.headers).get("Authorization")).toBe("Bearer access-token");
-    expect(JSON.parse(String(request?.body))).toMatchObject({ type: "url" });
+    expect(JSON.parse(String(request?.body))).toMatchObject({ type: "url", dynamic: false });
   });
 
   it("downloads binary QR files", async () => {

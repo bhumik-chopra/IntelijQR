@@ -144,6 +144,17 @@ def test_dynamic_url_generation_renders_stable_redirect(tmp_path: Path) -> None:
     assert renderer.payload == generation.dynamic_url
     assert generation.max_scans == 5
 
+    direct_generation = asyncio.run(
+        service.generate(
+            "user-id",
+            UrlQrRequest(type="url", url="https://example.com/direct", dynamic=False),
+        )
+    )
+
+    assert direct_generation.destination_url == "https://example.com/direct"
+    assert direct_generation.dynamic_url is None
+    assert renderer.payload == "https://example.com/direct"
+
 
 def test_qr_status_reflects_pause_expiry_and_scan_limit() -> None:
     now = datetime.now(timezone.utc)

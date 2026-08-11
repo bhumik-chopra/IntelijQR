@@ -48,7 +48,11 @@ class QrGeneratorService:
         if request.type != "url" and request.access_mode != "public":
             raise ApplicationError("SecureVault protection is available for dynamic URL QR codes")
         slug = await self._new_slug()
-        dynamic_url = f"{self._redirect_base_url}/r/{slug}" if request.type == "url" else None
+        uses_dynamic_redirect = (
+            request.type == "url"
+            and (request.dynamic or request.access_mode != "public")
+        )
+        dynamic_url = f"{self._redirect_base_url}/r/{slug}" if uses_dynamic_redirect else None
         rendered_payload = dynamic_url or destination_payload
         design = QrDesign(**request.design.model_dump())
         logo = await asyncio.to_thread(self._renderer.normalize_logo, request.logo_data_url)

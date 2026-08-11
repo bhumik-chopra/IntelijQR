@@ -138,5 +138,4 @@ class MongoDatabase:
             ]
         )
 
-
 mongo = MongoDatabase()

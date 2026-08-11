@@ -9,6 +9,7 @@ import { useTheme } from "../../hooks/useTheme";
 import { useNotificationUnread } from "../../features/notifications";
 import { cn } from "../../lib/cn";
 import { Avatar, Badge } from "../ui";
+import { BackendStatus } from "../BackendStatus";
 
 interface NavbarProps {
   title?: string;
@@ -121,6 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({ title, breadcrumbs }) => {
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2">
+        <BackendStatus compact />
         <div className="hidden md:block"><LanguageSelector compact onLocaleChange={(locale) => void persistLocale(locale)} /></div>
         <Link to="/notifications" aria-label={`${unread} unread notifications`} className="relative flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-white/6 hover:text-white">
           <Bell className="h-4 w-4" />

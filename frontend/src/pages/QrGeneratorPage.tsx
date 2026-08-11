@@ -100,6 +100,7 @@ export const QrGeneratorPage: React.FC = () => {
   const [label, setLabel] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [maxScans, setMaxScans] = useState("");
+  const [isDynamicUrl, setIsDynamicUrl] = useState(false);
   const [accessMode, setAccessMode] = useState<QrAccessMode>("public");
   const [accessPassword, setAccessPassword] = useState("");
   const [allowedEmails, setAllowedEmails] = useState("");
@@ -163,8 +164,8 @@ export const QrGeneratorPage: React.FC = () => {
     if (activeType === "url" && accessMode === "private" && privateEmails.length === 0) return null;
     const management = {
       ...(label.trim() ? { label: label.trim() } : {}),
-      ...(activeType === "url" && expiresAt ? { expires_at: new Date(expiresAt).toISOString() } : {}),
-      ...(activeType === "url" && maxScans ? { max_scans: Number(maxScans) } : {}),
+      ...(activeType === "url" && isDynamicUrl && expiresAt ? { expires_at: new Date(expiresAt).toISOString() } : {}),
+      ...(activeType === "url" && isDynamicUrl && maxScans ? { max_scans: Number(maxScans) } : {}),
       design,
       ...(logo ? { logo_data_url: logo } : {}),
       ...(activeType === "url" ? {
@@ -174,7 +175,7 @@ export const QrGeneratorPage: React.FC = () => {
       } : {}),
     };
     switch (activeType) {
-      case "url": return { type: "url", url: fields.url.trim(), ...management };
+      case "url": return { type: "url", url: fields.url.trim(), dynamic: isDynamicUrl, ...management };
       case "text": return { type: "text", text: fields.text.trim(), ...management };
       case "email": return { type: "email", email: fields.email.trim(), subject: fields.subject || undefined, body: fields.body || undefined, ...management };
       case "phone": return { type: "phone", phone: fields.phone.trim(), ...management };
@@ -182,7 +183,7 @@ export const QrGeneratorPage: React.FC = () => {
       case "contact": return { type: "contact", full_name: fields.fullName.trim(), organization: fields.organization || undefined, phone: fields.contactPhone || undefined, email: fields.contactEmail || undefined, ...management };
       case "location": return { type: "location", latitude: Number(fields.latitude), longitude: Number(fields.longitude), name: fields.locationName || undefined, ...management };
     }
-  }, [accessMode, accessPassword, activeType, allowedEmails, design, expiresAt, fields, label, logo, maxScans, payload]);
+  }, [accessMode, accessPassword, activeType, allowedEmails, design, expiresAt, fields, isDynamicUrl, label, logo, maxScans, payload]);
 
   const previewPayload = generation?.dynamic_url ?? payload;
 
@@ -268,7 +269,39 @@ export const QrGeneratorPage: React.FC = () => {
 
             <div className="space-y-5 p-6">
               {activeType === "url" && (
-                <Input label={t("generator.destination")} type="url" value={fields.url} onChange={(event) => updateField("url", event.target.value)} placeholder="https://" icon={<Link2 className="h-4 w-4" />} />
+                <div className="space-y-5">
+                  <Input label={t("generator.destination")} type="url" value={fields.url} onChange={(event) => updateField("url", event.target.value)} placeholder="https://" icon={<Link2 className="h-4 w-4" />} />
+                  <div>
+                    <p className="mb-2 text-sm font-medium text-slate-300">URL behavior</p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        onClick={() => { setIsDynamicUrl(false); setAccessMode("public"); resetGeneration(); }}
+                        className={cn(
+                          "rounded-xl border p-3 text-left transition-colors",
+                          !isDynamicUrl ? "border-emerald-500/35 bg-emerald-500/8" : "border-white/7 bg-white/2 hover:border-white/12",
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={cn("text-sm font-semibold", !isDynamicUrl ? "text-emerald-300" : "text-slate-300")}>Direct URL</span>
+                          <Badge variant="success">Recommended</Badge>
+                        </div>
+                        <p className="mt-1 text-xs leading-relaxed text-slate-600">The QR contains your exact website URL and works without IntelliQR running.</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setIsDynamicUrl(true); resetGeneration(); }}
+                        className={cn(
+                          "rounded-xl border p-3 text-left transition-colors",
+                          isDynamicUrl ? "border-violet-500/40 bg-violet-500/10" : "border-white/7 bg-white/2 hover:border-white/12",
+                        )}
+                      >
+                        <span className={cn("text-sm font-semibold", isDynamicUrl ? "text-violet-300" : "text-slate-300")}>Dynamic & tracked</span>
+                        <p className="mt-1 text-xs leading-relaxed text-slate-600">Uses an IntelliQR redirect for analytics, editing, limits, and protection.</p>
+                      </button>
+                    </div>
+                  </div>
+                </div>
               )}
               {activeType === "text" && (
                 <label className="block space-y-1.5 text-sm font-medium text-slate-300">
@@ -325,7 +358,7 @@ export const QrGeneratorPage: React.FC = () => {
             </div>
           </Card>
 
-          {activeType === "url" && (
+          {activeType === "url" && isDynamicUrl && (
             <Card padding="md">
               <div className="mb-5 flex items-start gap-3">
                 <div className="rounded-xl bg-violet-500/10 p-2.5"><LockKeyhole className="h-5 w-5 text-violet-400" /></div>
@@ -364,7 +397,7 @@ export const QrGeneratorPage: React.FC = () => {
                   onChange={(event) => { setLabel(event.target.value); resetGeneration(); }}
                 />
               </div>
-              {activeType === "url" && (
+              {activeType === "url" && isDynamicUrl && (
                 <>
                   <Input
                     label="Expiry date (optional)"
@@ -386,6 +419,11 @@ export const QrGeneratorPage: React.FC = () => {
                     The generated QR points to a stable local link. You can change its destination, pause it, or update these limits later from Dashboard without regenerating the image.
                   </p>
                 </>
+              )}
+              {activeType === "url" && !isDynamicUrl && (
+                <p className="text-xs leading-relaxed text-slate-600 sm:col-span-2">
+                  Direct URL mode stores the exact website address in the QR. Scan analytics, destination editing, expiry, limits, and SecureVault require Dynamic & tracked mode.
+                </p>
               )}
             </div>
           </Card>

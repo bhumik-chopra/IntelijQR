@@ -101,6 +101,16 @@ class BaseQrRequest(BaseModel):
 class UrlQrRequest(BaseQrRequest):
     type: Literal["url"]
     url: HttpUrl
+    dynamic: bool = True
+
+    @model_validator(mode="after")
+    def direct_url_has_no_server_controls(self):
+        if not self.dynamic:
+            if self.access_mode != "public":
+                raise ValueError("Protected URL QR codes require dynamic mode")
+            if self.expires_at is not None or self.max_scans is not None:
+                raise ValueError("Expiry and scan limits require dynamic mode")
+        return self
 
 
 class TextQrRequest(BaseQrRequest):

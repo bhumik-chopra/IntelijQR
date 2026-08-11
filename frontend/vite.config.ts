@@ -7,6 +7,8 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
+        // Vite and FastAPI run on the same development machine. Keeping the
+        // proxy on loopback avoids breakage whenever the machine's LAN IP changes.
         target: "http://127.0.0.1:8000",
         changeOrigin: true,
       },

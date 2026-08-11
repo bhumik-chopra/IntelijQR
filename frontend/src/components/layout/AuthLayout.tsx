@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { QrCode } from "lucide-react";
 import { cn } from "../../lib/cn";
 import { LanguageSelector, useLocale } from "../../features/i18n";
+import { BackendStatus } from "../BackendStatus";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -84,7 +85,10 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 
       {/* Right Panel – Form */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-10 relative">
-        <div className="absolute right-5 top-5 z-20"><LanguageSelector compact /></div>
+        <div className="absolute right-5 top-5 z-20 flex items-center gap-2">
+          <BackendStatus compact />
+          <LanguageSelector compact />
+        </div>
         {/* Background pattern */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-gradient-to-bl from-violet-600/8 to-transparent blur-3xl" />
