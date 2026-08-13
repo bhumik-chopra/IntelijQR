@@ -45,7 +45,7 @@ class NotificationService:
             user = await self._users.find_by_id(user_id)
             if user is not None and user.status == "active":
                 try:
-                    await self._email.send(user.email, f"IntelliQR: {title}", f"{message}\n\nOpen IntelliQR to review this event.")
+                    await self._email.send(user.email, f"IntelliQR: {title}", message)
                 except Exception:
                     logger.exception("Notification email failed", extra={"user_id": user_id, "event_type": event_type})
         return notification

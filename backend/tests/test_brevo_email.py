@@ -20,10 +20,23 @@ def test_brevo_sender_posts_transactional_email(monkeypatch) -> None:
 
     monkeypatch.setattr("app.infrastructure.notifications.brevo_email.httpx.AsyncClient", Client)
     settings = Settings(_env_file=None, jwt_secret="x" * 32, brevo_api_key="secret",
-                        notification_from_email="owner@example.com", notification_from_name="IntelliQR")
+                        notification_from_email="owner@example.com", notification_from_name="IntelliQR",
+                        frontend_base_url="https://intelij-qr.vercel.app")
 
     asyncio.run(BrevoEmailSender(settings).send("user@example.com", "Test", "It works"))
 
     assert captured["headers"]["api-key"] == "secret"
     assert captured["json"]["sender"] == {"name": "IntelliQR", "email": "owner@example.com"}
     assert captured["json"]["to"] == [{"email": "user@example.com"}]
+    assert "<h1" in captured["json"]["htmlContent"]
+    assert "Test" in captured["json"]["htmlContent"]
+    assert "https://intelij-qr.vercel.app/notifications" in captured["json"]["htmlContent"]
+
+
+def test_brevo_email_escapes_notification_content() -> None:
+    settings = Settings(_env_file=None, jwt_secret="x" * 32, brevo_api_key="secret",
+                        notification_from_email="owner@example.com")
+    html = BrevoEmailSender(settings)._render_html("IntelliQR: <Alert>", "<script>bad()</script>")
+
+    assert "<script>" not in html
+    assert "&lt;script&gt;bad()&lt;/script&gt;" in html
