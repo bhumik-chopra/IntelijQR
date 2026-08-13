@@ -52,7 +52,7 @@ class Settings(BaseSettings):
     refresh_cookie_name: str = "intelliqr_refresh"
     cookie_secure: bool = False
     admin_emails: list[str] = []
-    smtp_host: Literal["127.0.0.1", "localhost"] | None = None
+    smtp_host: str | None = None
     smtp_port: int = Field(default=1025, ge=1, le=65535)
     smtp_username: str | None = None
     smtp_password: str | None = None

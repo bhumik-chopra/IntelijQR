@@ -2,7 +2,6 @@ import asyncio
 from types import SimpleNamespace
 
 import pytest
-from pydantic import ValidationError
 
 from app.core.config import Settings
 from app.core.exceptions import ApplicationError, NotFoundError
@@ -10,9 +9,9 @@ from app.schemas.notification import NotificationPreferencesUpdate
 from app.services.notification_service import NotificationService
 
 
-def test_remote_smtp_hosts_are_rejected_for_local_build() -> None:
-    with pytest.raises(ValidationError):
-        Settings(_env_file=None, jwt_secret="x" * 32, smtp_host="smtp.example.com")
+def test_remote_smtp_hosts_are_supported() -> None:
+    settings = Settings(_env_file=None, jwt_secret="x" * 32, smtp_host="smtp.resend.com")
+    assert settings.smtp_host == "smtp.resend.com"
 
 
 def test_notification_persists_and_delivers_opted_in_local_email() -> None:
@@ -49,7 +48,7 @@ def test_preferences_require_local_smtp_and_missing_notifications_are_owner_safe
     service = NotificationService(Repository(), None, Email())
     request = NotificationPreferencesUpdate(in_app_enabled=True, email_enabled=True, security_alerts=True,
         qr_activity=True, share_activity=True, bulk_activity=True)
-    with pytest.raises(ApplicationError, match="local SMTP"):
+    with pytest.raises(ApplicationError, match="SMTP server"):
         asyncio.run(service.update_preferences("user", request))
     with pytest.raises(NotFoundError):
         asyncio.run(service.mark_read("another-users-notification", "user"))

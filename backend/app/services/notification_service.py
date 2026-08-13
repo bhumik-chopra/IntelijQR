@@ -37,9 +37,9 @@ class NotificationService:
             user = await self._users.find_by_id(user_id)
             if user is not None and user.status == "active":
                 try:
-                    await self._email.send(user.email, f"IntelliQR: {title}", f"{message}\n\nOpen IntelliQR locally to review this event.")
+                    await self._email.send(user.email, f"IntelliQR: {title}", f"{message}\n\nOpen IntelliQR to review this event.")
                 except Exception:
-                    logger.exception("Local notification email failed", extra={"user_id": user_id, "event_type": event_type})
+                    logger.exception("Notification email failed", extra={"user_id": user_id, "event_type": event_type})
         return notification
 
     async def list_owned(self, user_id: str, limit: int, offset: int, unread_only: bool):
@@ -66,5 +66,5 @@ class NotificationService:
     async def update_preferences(self, user_id: str, request: NotificationPreferencesUpdate) -> dict:
         values = request.model_dump()
         if values["email_enabled"] and not self._email.available:
-            raise ApplicationError("Configure a local SMTP server before enabling email notifications")
+            raise ApplicationError("Configure an SMTP server before enabling email notifications")
         return {**await self._repository.update_preferences(user_id, values), "local_smtp_available": self._email.available}
