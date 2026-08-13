@@ -14,7 +14,7 @@ Backend URL:
 http://127.0.0.1:8000
 
 Backend URL for phones on the same Wi-Fi:
-http://192.168.1.14:8000
+http://192.168.1.4:8000
 
 Swagger API documentation:
 http://127.0.0.1:8000/docs
@@ -29,7 +29,7 @@ Frontend URL:
 http://127.0.0.1:5173
 
 Frontend URL for phones on the same Wi-Fi:
-http://192.168.1.14:5173
+http://192.168.1.4:5173
 
 
 STOP A SERVER

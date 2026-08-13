@@ -36,7 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({ title, breadcrumbs }) => {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center border-b border-white/6 bg-[#0A0A14]/80 px-4 backdrop-blur-xl sm:px-6">
+    <header className="app-navbar sticky top-0 z-40 flex h-16 items-center border-b border-white/6 bg-[#0A0A14]/80 px-4 backdrop-blur-xl sm:px-6">
       <div className="flex min-w-0 flex-1 items-center gap-2">
         {breadcrumbs ? (
           <nav aria-label="Breadcrumb" className="hidden items-center gap-1.5 text-sm sm:flex">

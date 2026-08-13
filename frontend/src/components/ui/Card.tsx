@@ -21,7 +21,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          "relative rounded-2xl border overflow-hidden",
+          "app-card relative rounded-2xl border overflow-hidden",
           "transition-all duration-300",
           glass
             ? "bg-white/4 backdrop-blur-xl border-white/8"

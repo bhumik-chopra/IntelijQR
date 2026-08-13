@@ -139,7 +139,7 @@ export const QrScannerPage: React.FC = () => {
     <div className="space-y-6 animate-fade-in">
       <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="mb-2 flex items-center gap-2"><Badge variant="purple">Milestone 3</Badge><Badge variant="success">Local analysis</Badge></div>
+          <div className="mb-2 flex items-center gap-2"><Badge variant="success">Local analysis</Badge></div>
           <h1 className="text-2xl font-bold text-white sm:text-3xl">SafeScan QR Scanner</h1>
           <p className="mt-1 text-sm text-slate-500">Decode, classify, and inspect QR content before opening it.</p>
         </div>

@@ -52,7 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   return (
     <aside
       className={cn(
-        "relative hidden md:flex flex-col h-screen",
+        "app-sidebar relative hidden md:flex flex-col h-screen",
         "bg-[#0A0A14] border-r border-white/6",
         "transition-all duration-300 ease-in-out",
         collapsed ? "w-[68px]" : "w-[240px]",
@@ -106,8 +106,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
                         "focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/50",
                         collapsed ? "justify-center px-0 py-2.5" : "",
                         isActive
-                          ? "bg-violet-500/12 text-violet-300 font-medium"
-                          : "text-slate-500 hover:text-slate-200 hover:bg-white/4 font-normal"
+                          ? "app-nav-active bg-violet-500/12 text-violet-300 font-medium"
+                          : "app-nav-item text-slate-500 hover:text-slate-200 hover:bg-white/4 font-normal"
                       )}
                     >
                       {/* Active indicator */}

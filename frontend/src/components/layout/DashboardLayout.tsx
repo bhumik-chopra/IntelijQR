@@ -42,11 +42,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     ];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0A0A14]">
+    <div className="app-shell flex h-screen overflow-hidden bg-[#0A0A14]">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Navbar title={title} breadcrumbs={resolvedBreadcrumbs} />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <main className="app-main flex-1 overflow-y-auto p-4 sm:p-6">
           <Outlet />
         </main>
       </div>
