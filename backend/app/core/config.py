@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     bulk_max_rows: int = Field(default=250, ge=1, le=1000)
     share_storage_directory: Path = BASE_DIR.parent / "data" / "shares"
     share_max_file_bytes: int = Field(default=25 * 1024 * 1024, ge=1024, le=250 * 1024 * 1024)
+    blob_read_write_token: str | None = None
     redirect_base_url: str = "http://127.0.0.1:8000"
     frontend_base_url: str = "http://127.0.0.1:5173"
     vault_encryption_key: str | None = Field(default=None, min_length=32)

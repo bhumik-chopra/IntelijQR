@@ -10,6 +10,7 @@ from app.core.exceptions import ApplicationError, AuthorizationError
 from app.core.security import PasswordService, TokenValidationError
 from app.core.vault import VaultCipher, VaultGrantService
 from app.infrastructure.storage.encrypted_share_storage import EncryptedShareStorage
+from app.infrastructure.storage.vercel_blob_share_storage import VercelBlobShareStorage
 from app.models.share_file import ShareFile
 from app.services.analytics.scan_context import ScanContextService
 from app.services.share.share_service import ShareVaultService
@@ -21,6 +22,39 @@ def test_encrypted_share_storage_never_writes_plaintext(tmp_path: Path) -> None:
 
     assert b"confidential" not in (tmp_path / relative).read_bytes()
     assert storage.read(relative) == b"confidential document content"
+
+
+def test_vercel_blob_share_storage_encrypts_round_trip() -> None:
+    objects = {}
+
+    class Result:
+        def __init__(self, pathname, content=b"", status_code=200):
+            self.pathname = pathname
+            self.content = content
+            self.status_code = status_code
+
+    class Client:
+        def __init__(self, token=None): self.token = token
+        def __enter__(self): return self
+        def __exit__(self, *_): pass
+        def put(self, pathname, content, **_):
+            objects[pathname] = content
+            return Result(pathname)
+        def get(self, pathname, **_): return Result(pathname, objects[pathname])
+        def delete(self, pathname): objects.pop(pathname, None)
+
+    storage = VercelBlobShareStorage(
+        "test-token",
+        VaultCipher("share-secret-that-is-at-least-32-characters"),
+        Client,
+    )
+    pathname = storage.save("file-key", b"confidential document content")
+
+    assert pathname == "sharevault/file-key.vault"
+    assert b"confidential" not in objects[pathname]
+    assert storage.read(pathname) == b"confidential document content"
+    storage.delete(pathname)
+    assert pathname not in objects
 
 
 def test_share_grants_cannot_be_used_as_qr_grants() -> None:

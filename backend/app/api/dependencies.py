@@ -36,6 +36,7 @@ from app.services.bulk.bulk_service import BulkForgeService
 from app.infrastructure.bulk.parser import BulkImportParser
 from app.infrastructure.bulk.zip_storage import BulkZipStorage
 from app.infrastructure.storage.encrypted_share_storage import EncryptedShareStorage
+from app.infrastructure.storage.vercel_blob_share_storage import VercelBlobShareStorage
 from app.services.share.share_service import ShareVaultService
 from app.services.dashboard_service import DashboardService
 from app.services.profile_service import ProfileService
@@ -164,7 +165,12 @@ def get_share_vault_service(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> ShareVaultService:
     cipher = VaultCipher(settings.vault_encryption_key or settings.jwt_secret)
-    return ShareVaultService(repository, downloads, EncryptedShareStorage(settings.share_storage_directory, cipher), generator,
+    storage = (
+        VercelBlobShareStorage(settings.blob_read_write_token, cipher)
+        if settings.blob_read_write_token
+        else EncryptedShareStorage(settings.share_storage_directory, cipher)
+    )
+    return ShareVaultService(repository, downloads, storage, generator,
         PasswordService(), VaultGrantService(settings), ScanContextService(settings.jwt_secret), settings.frontend_base_url,
         settings.redirect_base_url, settings.share_max_file_bytes)
 
