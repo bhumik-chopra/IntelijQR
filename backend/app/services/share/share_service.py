@@ -54,7 +54,15 @@ class ShareVaultService:
         stored_path = await asyncio.to_thread(self._storage.save, storage_key, content)
         generation = None
         try:
-            generation = await self._generator.generate(user_id, UrlQrRequest(type="url", url=f"{self._frontend_base_url}/share/{slug}", label=f"Share: {safe_name}"))
+            # ShareVault records its own download analytics, so its QR should open
+            # the public frontend access page directly instead of depending on a
+            # second dynamic redirect through the API host.
+            generation = await self._generator.generate(user_id, UrlQrRequest(
+                type="url",
+                url=f"{self._frontend_base_url}/share/{slug}",
+                label=f"Share: {safe_name}",
+                dynamic=False,
+            ))
             return await self._repository.create(user_id=user_id, slug=slug, filename=safe_name, media_type=canonical_media_type,
                 size=len(content), content_hash=hashlib.sha256(content).hexdigest(), stored_path=stored_path, qr_generation_id=generation.id,
                 access_mode=access_mode, access_password_hash=password_hash, allowed_emails=emails if access_mode == "private" else [], expires_at=expires_at, max_downloads=max_downloads)

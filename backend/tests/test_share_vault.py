@@ -90,3 +90,32 @@ def test_share_service_rejects_disguised_files_and_enforces_password() -> None:
     with pytest.raises(AuthorizationError): asyncio.run(service.grant("slug", "wrong-password", None))
     url, _ = asyncio.run(service.grant("slug", "correct-password", None))
     assert "/shares/access/slug/download?grant=" in url
+
+
+def test_share_qr_opens_frontend_access_page_directly() -> None:
+    settings = Settings(_env_file=None, jwt_secret="x" * 32)
+
+    class Repository:
+        async def slug_exists(self, _slug): return False
+        async def create(self, **values): return SimpleNamespace(**values)
+
+    class Storage:
+        def save(self, key, _content): return f"{key}.vault"
+        def delete(self, _path): pass
+
+    class Generator:
+        request = None
+        async def generate(self, _user_id, request):
+            self.request = request
+            return SimpleNamespace(id="qr-id")
+
+    generator = Generator()
+    service = ShareVaultService(
+        Repository(), None, Storage(), generator, PasswordService(), VaultGrantService(settings),
+        ScanContextService("x" * 32), "https://intelij-qr.vercel.app", "https://api.example.com", 1024 * 1024,
+    )
+
+    asyncio.run(service.create("user", "note.txt", "text/plain", b"hello", "public", None, "", None, None))
+
+    assert str(generator.request.url).startswith("https://intelij-qr.vercel.app/share/")
+    assert generator.request.dynamic is False
