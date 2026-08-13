@@ -48,7 +48,7 @@ def test_preferences_require_local_smtp_and_missing_notifications_are_owner_safe
     service = NotificationService(Repository(), None, Email())
     request = NotificationPreferencesUpdate(in_app_enabled=True, email_enabled=True, security_alerts=True,
         qr_activity=True, share_activity=True, bulk_activity=True)
-    with pytest.raises(ApplicationError, match="SMTP server"):
+    with pytest.raises(ApplicationError, match="email provider"):
         asyncio.run(service.update_preferences("user", request))
     with pytest.raises(NotFoundError):
         asyncio.run(service.mark_read("another-users-notification", "user"))

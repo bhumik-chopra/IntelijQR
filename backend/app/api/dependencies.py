@@ -43,6 +43,7 @@ from app.services.profile_service import ProfileService
 from app.services.admin_service import AdminService
 from app.services.notification_service import NotificationService
 from app.infrastructure.notifications.local_smtp import LocalSmtpEmailSender
+from app.infrastructure.notifications.brevo_email import BrevoEmailSender
 
 
 bearer_scheme = HTTPBearer(
@@ -247,4 +248,5 @@ def get_notification_service(
     users: Annotated[UserRepository, Depends(get_user_repository)],
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> NotificationService:
-    return NotificationService(repository, users, LocalSmtpEmailSender(settings))
+    email = BrevoEmailSender(settings) if settings.brevo_api_key else LocalSmtpEmailSender(settings)
+    return NotificationService(repository, users, email)

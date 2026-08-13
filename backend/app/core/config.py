@@ -57,7 +57,9 @@ class Settings(BaseSettings):
     smtp_username: str | None = None
     smtp_password: str | None = None
     smtp_starttls: bool = False
+    brevo_api_key: str | None = None
     notification_from_email: str = "notifications@intelliqr.local"
+    notification_from_name: str = "IntelliQR"
 
 
 @lru_cache

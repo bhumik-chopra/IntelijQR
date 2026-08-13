@@ -1,7 +1,7 @@
 import logging
+from typing import Protocol
 
 from app.core.exceptions import ApplicationError, NotFoundError
-from app.infrastructure.notifications.local_smtp import LocalSmtpEmailSender
 from app.models.notification import Notification
 from app.repositories.notification_repository import NotificationRepository
 from app.repositories.user_repository import UserRepository
@@ -9,6 +9,14 @@ from app.schemas.notification import NotificationPreferencesUpdate
 
 
 logger = logging.getLogger(__name__)
+
+
+class EmailSender(Protocol):
+    @property
+    def available(self) -> bool: ...
+    async def send(self, recipient: str, subject: str, body: str) -> None: ...
+
+
 CATEGORY_PREFERENCE = {
     "security": "security_alerts",
     "qr": "qr_activity",
@@ -18,7 +26,7 @@ CATEGORY_PREFERENCE = {
 
 
 class NotificationService:
-    def __init__(self, repository: NotificationRepository, users: UserRepository, email: LocalSmtpEmailSender) -> None:
+    def __init__(self, repository: NotificationRepository, users: UserRepository, email: EmailSender) -> None:
         self._repository = repository
         self._users = users
         self._email = email
@@ -66,5 +74,5 @@ class NotificationService:
     async def update_preferences(self, user_id: str, request: NotificationPreferencesUpdate) -> dict:
         values = request.model_dump()
         if values["email_enabled"] and not self._email.available:
-            raise ApplicationError("Configure an SMTP server before enabling email notifications")
+            raise ApplicationError("Configure an email provider before enabling email notifications")
         return {**await self._repository.update_preferences(user_id, values), "local_smtp_available": self._email.available}
