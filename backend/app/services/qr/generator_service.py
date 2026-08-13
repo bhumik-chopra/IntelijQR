@@ -242,16 +242,16 @@ class QrGeneratorService:
 
     async def resolve_download(
         self, generation_id: str, user_id: str, file_format: QrFileFormat
-    ) -> tuple[Path, str]:
+    ) -> tuple[bytes, str]:
         generation = await self.get_owned(generation_id, user_id)
         relative_path = generation.files.get(file_format)
         if relative_path is None:
             raise NotFoundError("Requested QR file was not found")
         try:
-            path = await asyncio.to_thread(self._storage.resolve, relative_path)
+            content = await asyncio.to_thread(self._storage.read, relative_path)
         except FileNotFoundError as exc:
             raise NotFoundError("Requested QR file was not found") from exc
-        return path, f"intelliqr-{generation.id}.{file_format}"
+        return content, f"intelliqr-{generation.id}.{file_format}"
 
     async def _new_slug(self) -> str:
         for _ in range(5):

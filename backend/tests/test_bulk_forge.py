@@ -49,3 +49,12 @@ def test_zip_storage_packages_requested_files_with_safe_names(tmp_path: Path) ->
 
     with ZipFile(storage.resolve(relative)) as archive:
         assert archive.namelist() == ["1-Product-QR.png", "1-Product-QR.svg"]
+
+
+def test_zip_storage_packages_in_memory_qr_files(tmp_path: Path) -> None:
+    storage = BulkZipStorage(tmp_path / "archives")
+    relative = storage.create("job-id", [(b"png", "QR.png"), (b"svg", "QR.svg")])
+
+    with ZipFile(storage.resolve(relative)) as archive:
+        assert archive.read("QR.png") == b"png"
+        assert archive.read("QR.svg") == b"svg"

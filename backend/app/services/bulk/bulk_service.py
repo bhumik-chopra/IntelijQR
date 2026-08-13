@@ -31,15 +31,15 @@ class BulkForgeService:
         processed = len(validation_errors)
         succeeded = 0
         failed = len(validation_errors)
-        entries: list[tuple[Path, str]] = []
+        entries: list[tuple[bytes, str]] = []
         await self._repository.update(job.id, {"status": "processing", "processed_rows": processed, "failed_rows": failed, "errors": errors})
         for row_number, request in requests:
             try:
                 generation = await self._generator.generate(job.user_id, request)
                 for file_format in job.formats:
-                    path, _ = await self._generator.resolve_download(generation.id, job.user_id, file_format)
+                    content, _ = await self._generator.resolve_download(generation.id, job.user_id, file_format)
                     label = generation.label or f"row-{row_number}"
-                    entries.append((path, f"{row_number:04d}-{label}-{generation.id}.{file_format}"))
+                    entries.append((content, f"{row_number:04d}-{label}-{generation.id}.{file_format}"))
                 succeeded += 1
             except Exception as exc:
                 failed += 1

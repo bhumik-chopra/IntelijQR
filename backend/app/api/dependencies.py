@@ -11,6 +11,7 @@ from app.db.mongodb import mongo
 from app.infrastructure.qr.renderer import QrRenderer
 from app.infrastructure.qr.decoder import QrImageDecoder
 from app.infrastructure.storage.local_qr_storage import LocalQrStorage
+from app.infrastructure.storage.vercel_blob_qr_storage import VercelBlobQrStorage
 from app.models.user import User
 from app.repositories.session_repository import SessionRepository
 from app.repositories.qr_generation_repository import QrGenerationRepository
@@ -121,7 +122,8 @@ def get_qr_generator_service(
     return QrGeneratorService(
         repository=repository,
         renderer=QrRenderer(),
-        storage=LocalQrStorage(settings.qr_storage_directory),
+        storage=(VercelBlobQrStorage(settings.blob_read_write_token)
+                 if settings.blob_read_write_token else LocalQrStorage(settings.qr_storage_directory)),
         payload_builder=QrPayloadBuilder(),
         redirect_base_url=settings.redirect_base_url,
         frontend_base_url=settings.frontend_base_url,

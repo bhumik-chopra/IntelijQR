@@ -1,7 +1,6 @@
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, Response, status
-from fastapi.responses import FileResponse
 
 from app.api.dependencies import CurrentUser, get_dashboard_service, get_qr_generator_service
 from app.services.dashboard_service import DashboardService
@@ -111,7 +110,7 @@ async def delete_qr_generation(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.get("/{generation_id}/files/{file_format}", response_class=FileResponse)
+@router.get("/{generation_id}/files/{file_format}")
 async def download_qr_generation(
     generation_id: str,
     file_format: Literal["png", "svg", "pdf"],
@@ -119,7 +118,8 @@ async def download_qr_generation(
     service: Annotated[QrGeneratorService, Depends(get_qr_generator_service)],
     background_tasks: BackgroundTasks,
     dashboard: Annotated[DashboardService, Depends(get_dashboard_service)],
-) -> FileResponse:
-    path, filename = await service.resolve_download(generation_id, current_user.id, file_format)
+) -> Response:
+    content, filename = await service.resolve_download(generation_id, current_user.id, file_format)
     background_tasks.add_task(dashboard.record_download, current_user.id, "qr", generation_id, filename, file_format)
-    return FileResponse(path, media_type=MEDIA_TYPES[file_format], filename=filename, background=background_tasks)
+    return Response(content=content, media_type=MEDIA_TYPES[file_format], background=background_tasks,
+                    headers={"Content-Disposition": f'attachment; filename="{filename}"', "Cache-Control": "no-store"})

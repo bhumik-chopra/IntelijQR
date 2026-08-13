@@ -9,6 +9,7 @@ from pydantic import ValidationError
 
 from app.infrastructure.qr.renderer import QrRenderer
 from app.infrastructure.storage.local_qr_storage import LocalQrStorage
+from app.infrastructure.storage.vercel_blob_qr_storage import VercelBlobQrStorage
 from app.models.qr_generation import QrDesign, QrGeneration
 from app.schemas.qr_generation import (
     ContactQrRequest,
@@ -70,6 +71,31 @@ def test_local_storage_round_trip(tmp_path: Path) -> None:
     assert storage.resolve(paths["png"]).read_bytes() == b"png"
     assert storage.resolve(paths["svg"]).read_bytes() == b"svg"
     assert storage.resolve(paths["pdf"]).read_bytes() == b"pdf"
+
+
+def test_vercel_blob_qr_storage_round_trip() -> None:
+    objects = {}
+
+    class Result:
+        def __init__(self, pathname, content=b"", status_code=200):
+            self.pathname, self.content, self.status_code = pathname, content, status_code
+
+    class Client:
+        def __init__(self, token=None): self.token = token
+        def __enter__(self): return self
+        def __exit__(self, *_args): pass
+        def put(self, pathname, content, **_kwargs): objects[pathname] = content; return Result(pathname)
+        def get(self, pathname, **_kwargs): return Result(pathname, objects[pathname])
+        def delete(self, paths):
+            for path in ([paths] if isinstance(paths, str) else paths): objects.pop(path, None)
+
+    storage = VercelBlobQrStorage("token", Client)
+    paths = storage.save("key", {"png": b"png", "svg": b"svg", "pdf": b"pdf"}, b"logo")
+
+    assert storage.read(paths["png"]) == b"png"
+    assert objects["key/logo.png"] == b"logo"
+    storage.delete("key")
+    assert objects == {}
 
 
 def test_dynamic_url_generation_renders_stable_redirect(tmp_path: Path) -> None:
